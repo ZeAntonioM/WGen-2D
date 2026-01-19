@@ -21,20 +21,18 @@ from pygame.math import Vector2
 
 
 ### Constant variables
-CHUNK_SIZE = Vector2(16, 16)
+CHUNK_SIZE = Vector2(32, 32)
 DISTANCE_FOR_LOADING_CHUNKS = 60
-DISTANCE_FOR_UNLOADING_CHUNKS = 90
+DISTANCE_FOR_UNLOADING_CHUNKS = 100
 assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
 
 ### Classes Chunk and ChunkManager
 
 class Chunk():
     """ Chunks can be
-     - created (instantiated) which does nothing more than creating this object
-     - loaded or unloaded (which performs optimizations in case the camera is not around)
-     - generated which generates the chunk (if it is not already generated)
-    Loading a chunk generates it if necessary.
-    Generating a chunk forcefully creates the 8 neighboring chunks if they don't exist.
+     - only created (instantiated) which is nothing more than having created this object
+     - loaded (aka generated)
+    Loading a chunk creates the 8 neighboring Chunk objects if they don't exist already.
     """
     
     def __init__(self, tile_pos: Vector2, chunk_manager):
@@ -49,7 +47,6 @@ class Chunk():
         self.neighbors = dict() # maps (x,y) to Chunk objects
 
         self.is_loaded = False
-        self.is_generated = False
         
         self.surface = pygame.Surface(CHUNK_SIZE)
         self._draw_surface()
@@ -59,31 +56,18 @@ class Chunk():
         return [tile_to_world(self.tile_pos + Vector2(i, j)) for i, j in ((0, 0), (0, 1), (1, 0), (1, 1))]
 
     def load(self):
-        ...
-        if not self.is_generated:
-            self.generate()
+        if self.is_loaded: return
         self.is_loaded = True
-        self._draw_surface()
-    
-    def unload(self):
-        ...
-        self.is_loaded = False
-        self._draw_surface()
-
-    def generate(self):
         self._create_neighbors()
         ...
-        self.is_generated = True
         self._draw_surface()
 
-    def _draw_surface(self):
-        self.surface.fill((70, 255, 50) if self.is_loaded else (140, 40, 40))
-        if self.is_generated:
-            pygame.draw.polygon(self.surface, (100, 50, 0), ((CHUNK_SIZE.x//2, CHUNK_SIZE.y//6), (CHUNK_SIZE.x*3/4, CHUNK_SIZE.y*3/4), (CHUNK_SIZE.x/4, CHUNK_SIZE.y*3/4)))
-    
     @property
     def position(self):
         return self.tile_pos
+    
+    def _draw_surface(self):
+        self.surface.fill((70, 255, 50) if self.is_loaded else (60, 40, 40))
 
     def _create_neighbors(self):
         for x in (-1,0,1):
@@ -99,7 +83,6 @@ class ChunkManager():
 
     def __init__(self):
         self._chunks = dict() # mapping (x, y) in tile_coordinates to Chunk objects
-        self._active_chunks = set() # subset of self._chunks
 
     def update(self, camera_pos: Vector2):
         p = world_to_tile(camera_pos)
@@ -117,16 +100,11 @@ class ChunkManager():
     @property
     def chunks(self) -> set[Chunk]:
         return self._chunks
-    
-    @property
-    def active_chunks(self) -> set[Chunk]:
-        return self._active_chunks
 
     def _unload_chunks_away_from_camera(self, camera_pos):
-        for c in self._active_chunks.copy():
-            if distance_to_chunk(camera_pos, c.position) >= DISTANCE_FOR_UNLOADING_CHUNKS:
-                c.unload()
-                self._active_chunks.remove(c)
+        for tile_pos in tuple(self._chunks.keys()):
+            if distance_to_chunk(camera_pos, tile_pos) >= DISTANCE_FOR_UNLOADING_CHUNKS:
+                del self._chunks[tile_pos]
 
     def _load_chunks_near_camera(self, camera_pos: Vector2):
         camera_tile = world_to_tile(camera_pos)
@@ -145,9 +123,7 @@ class ChunkManager():
                 c = self._chunks[tuple(p)]
             else:
                 self._chunks[tuple(p)] = c = Chunk(p, self)
-            if not c in self._active_chunks:
-                c.load()
-                self._active_chunks.add(c)
+            c.load() # in case they aren't already
 
 
 ### Coordinate conversion functions
@@ -197,8 +173,6 @@ def tests():
     CHUNK_SIZE = size
     c = Chunk(Vector2(1, 0), m)
     c.load()
-    c.unload()
-    c.load()
     assert c.get_corner_points() == [Vector2(size.x,0), size, Vector2(size.x*2, 0), Vector2(size.x*2, size.y)]
     assert distance_to_chunk(Vector2(0, 0), c.position) == size.x
     assert distance_to_chunk(Vector2(0, size.y*0.5), c.position) == size.x
@@ -238,7 +212,6 @@ def open_visuals():
                 break
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(m.chunks)
-                print(m.active_chunks)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT: key_map["left"] = True
                 if event.key == pygame.K_RIGHT: key_map["right"] = True
@@ -256,6 +229,7 @@ def open_visuals():
         if key_map["down"]: camera_pos.y += 1
         m.update(camera_pos)
         # draw
+        d.fill((0,0,0))
         for c in m.chunks.values():
             d.blit(c.surface, tile_to_world
                    (c.position))
