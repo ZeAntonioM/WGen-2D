@@ -1,6 +1,12 @@
 #!/use/bin/python
 """ This file contains the classes Chunk and ChunkManager.
-They define chunks, coordinates, conversion functions.
+
+The following global variables are defined:
+ - CHUNK_SIZE: pygame.math.Vector2 - the size of every chunk
+ - DISTANCE_FOR_LOADING_CHUNKS: int - chunks inside this distance are loaded
+ - DISTANCE_FOR_UNLOADING_CHUNKS: int - chunks outside this distance are unloaded/deleted
+ - CHUNK_MANAGER: ChunkManager - a singleton holding the chunk objects and managing the loading and unloading of chunks
+
 All coordinates are modeled as pygame.math.Vector2.
 
 There are three types of coordinates:
@@ -13,6 +19,15 @@ There are three types of coordinates:
  - chunk coordinates
      these can be used inside of a chunk. They are world coordinates, but
      shifted, so that (0,0) lies in the corner of the chunk.
+
+These functions are defined for working with the coordinate systems and converting between them:
+ - world_to_tile(world_pos: Vector2) -> Vector2
+ - tile_to_world(tile_pos: Vector2) -> Vector2
+ - world_to_chunk(world_pos: Vector2, tile_pos: Vector2) -> Vector2
+ - chunk_to_world(chunk_pos: Vector2, tile_pos: Vector2) -> Vector2
+ - distance_to_chunk(pos: Vector2, tile_pos: Vector2) -> float - returns the distance of pos (world coordinates) to the tile specified by tile_pos.
+    0 means inside or exactly on the border.
+
 """
 
 import math
@@ -22,8 +37,8 @@ from pygame.math import Vector2
 
 ### Constant variables
 CHUNK_SIZE = Vector2(32, 32)
-DISTANCE_FOR_LOADING_CHUNKS = 60
-DISTANCE_FOR_UNLOADING_CHUNKS = 100
+DISTANCE_FOR_LOADING_CHUNKS = 200
+DISTANCE_FOR_UNLOADING_CHUNKS = 280
 assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
 
 ### Classes Chunk and ChunkManager
@@ -35,7 +50,7 @@ class Chunk():
     Loading a chunk creates the 8 neighboring Chunk objects if they don't exist already.
     """
     
-    def __init__(self, tile_pos: Vector2, chunk_manager):
+    def __init__(self, tile_pos: Vector2):
         """
         params:
          - tile_pos: Vector2 - the index of the chunk (tile_coordinate)
@@ -43,7 +58,6 @@ class Chunk():
         """
         self.tile_pos = tile_pos
 
-        self.chunk_manager = chunk_manager
         self.neighbors = dict() # maps (x,y) to Chunk objects
 
         self.is_loaded = False
@@ -57,15 +71,17 @@ class Chunk():
 
     def load(self):
         if self.is_loaded: return
-        self.is_loaded = True
         self._create_neighbors()
-        ...
+        ... # chunk generation goes here
+        self.is_loaded = True
         self._draw_surface()
 
     @property
     def position(self):
         return self.tile_pos
-    
+
+    # TODO Change this function so that it properly adds the correct color.
+    # Take the biome(s) into consideration.
     def _draw_surface(self):
         self.surface.fill((70, 255, 50) if self.is_loaded else (60, 40, 40))
 
@@ -75,8 +91,8 @@ class Chunk():
             tile_pos = (self.position.x + x, self.position.y + y)
             if tile_pos in self.neighbors:
                 continue
-            self.chunk_manager.create_chunk(Vector2(*tile_pos))
-            self.neighbors[tile_pos] = self.chunk_manager.chunks[tile_pos]
+            CHUNK_MANAGER.create_chunk(Vector2(*tile_pos))
+            self.neighbors[tile_pos] = CHUNK_MANAGER.chunks[tile_pos]
             
 
 class ChunkManager():
@@ -95,7 +111,7 @@ class ChunkManager():
         """If there does not exist a chunk at tile_pos, creates one and puts it there."""
         if tuple(tile_pos) in self._chunks:
             return
-        self._chunks[tuple(tile_pos)] = Chunk(tile_pos, self)
+        self._chunks[tuple(tile_pos)] = Chunk(tile_pos)
 
     @property
     def chunks(self) -> set[Chunk]:
@@ -110,8 +126,9 @@ class ChunkManager():
         camera_tile = world_to_tile(camera_pos)
         # get the tile positions for all chunks in radius of DISTANCE_FOR_LOADING_CHUNKS
         tile_positions = []
-        num_chunks_x_dir = math.ceil(DISTANCE_FOR_LOADING_CHUNKS / CHUNK_SIZE.x)+2 # +2 for safety, if they are too far away, they'll be removed in next step
-        num_chunks_y_dir = math.ceil(DISTANCE_FOR_LOADING_CHUNKS / CHUNK_SIZE.y)+2
+        ADDITIONAL_DISTANCE_FOR_SAFETY = 2 # the next step removes tile positions that are too far
+        num_chunks_x_dir = math.ceil(DISTANCE_FOR_LOADING_CHUNKS / CHUNK_SIZE.x)+ADDITIONAL_DISTANCE_FOR_SAFETY 
+        num_chunks_y_dir = math.ceil(DISTANCE_FOR_LOADING_CHUNKS / CHUNK_SIZE.y)+ADDITIONAL_DISTANCE_FOR_SAFETY 
         for x in range(-num_chunks_x_dir, num_chunks_x_dir):
             for y in range(-num_chunks_y_dir, num_chunks_y_dir):
                 chunk_pos = Vector2(x, y) + camera_tile
@@ -122,7 +139,7 @@ class ChunkManager():
             if tuple(p) in self._chunks:
                 c = self._chunks[tuple(p)]
             else:
-                self._chunks[tuple(p)] = c = Chunk(p, self)
+                self._chunks[tuple(p)] = c = Chunk(p)
             c.load() # in case they aren't already
 
 
@@ -145,7 +162,7 @@ def distance_to_chunk(pos: Vector2, tile_pos: Vector2) -> float:
     """ returns the distance of pos (world coordinates) to the tile specified by tile_pos.
     0 means inside or exactly on the border. """
     ### get corner points
-    corner_points = Chunk(tile_pos, ChunkManager()).get_corner_points()
+    corner_points = Chunk(tile_pos).get_corner_points()
     ### characterize the position
     x, y = 0, 0
     if all(p.x < pos.x for p in corner_points):
@@ -162,6 +179,10 @@ def distance_to_chunk(pos: Vector2, tile_pos: Vector2) -> float:
     if x == 0 and y != 0: return min(abs(pos.y - p.y) for p in corner_points)
     if x != 0 and y == 0: return min(abs(pos.x - p.x) for p in corner_points)
 
+# instantiate ChunkManager Singleton
+
+CHUNK_MANAGER = ChunkManager()
+
 
 ### Automatic tests (executed if this file is run directly)
 
@@ -171,14 +192,14 @@ def tests():
     m = ChunkManager()
     prev_chunk_size = CHUNK_SIZE.copy()
     CHUNK_SIZE = size
-    c = Chunk(Vector2(1, 0), m)
+    c = Chunk(Vector2(1, 0))
     c.load()
     assert c.get_corner_points() == [Vector2(size.x,0), size, Vector2(size.x*2, 0), Vector2(size.x*2, size.y)]
     assert distance_to_chunk(Vector2(0, 0), c.position) == size.x
     assert distance_to_chunk(Vector2(0, size.y*0.5), c.position) == size.x
     assert distance_to_chunk(Vector2(0, size.y*3), c.position) == math.sqrt(size.x**2 + (size.y*2)**2)
     CHUNK_SIZE = prev_chunk_size
-    c = Chunk(Vector2(1, 0), m)
+    c = Chunk(Vector2(1, 0))
     if 0: # visual test for distance to chunk
         d = pygame.display.set_mode((400, 100))
         d.blit(c.surface, tile_to_world(c.position)+Vector2(0, 50))
@@ -191,11 +212,8 @@ def tests():
     print("all tests passed")
 
 def open_visuals():
-    global CHUNK_SIZE
     d = pygame.display.set_mode((1000, 500))
     camera_pos = Vector2(500, 250)
-    m = ChunkManager()
-    CHUNK_SIZE = Vector2(60, 40)
     running = True
     grid = pygame.Surface(d.get_size()).convert_alpha()
     grid.fill((0,0,0,0))
@@ -210,8 +228,6 @@ def open_visuals():
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
                 break
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                print(m.chunks)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT: key_map["left"] = True
                 if event.key == pygame.K_RIGHT: key_map["right"] = True
@@ -227,10 +243,10 @@ def open_visuals():
         if key_map["right"]: camera_pos.x += 1
         if key_map["up"]: camera_pos.y -= 1
         if key_map["down"]: camera_pos.y += 1
-        m.update(camera_pos)
+        CHUNK_MANAGER.update(camera_pos)
         # draw
         d.fill((0,0,0))
-        for c in m.chunks.values():
+        for c in CHUNK_MANAGER.chunks.values():
             d.blit(c.surface, tile_to_world
                    (c.position))
         pygame.draw.circle(d,(0, 0, 255), camera_pos, 4)
