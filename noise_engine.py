@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import numpy as np
-from pyfastnoiselite import FastNoiseLite, NoiseType, FractalType
+from pyfastnoiselite.pyfastnoiselite import FastNoiseLite, NoiseType, FractalType
 
 
 class NoiseEngine:
