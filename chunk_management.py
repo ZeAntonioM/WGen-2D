@@ -147,7 +147,7 @@ class ChunkManager():
 
 """ world_position gets rounded to get the position of the chunk it is inside of """
 def world_to_tile(world_pos: Vector2) -> Vector2:
-    return Vector2(world_pos.x // CHUNK_SIZE.x, world_pos.y // CHUNK_SIZE.y)
+    return Vector2(int(round(world_pos.x / CHUNK_SIZE.x)), int(round(world_pos.y / CHUNK_SIZE.y)))
 
 def tile_to_world(tile_pos: Vector2) -> Vector2:
     return Vector2(tile_pos.x * CHUNK_SIZE.x, tile_pos.y * CHUNK_SIZE.y)
