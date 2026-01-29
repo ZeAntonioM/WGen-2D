@@ -21,15 +21,17 @@ class NoiseEngine:
         self.noise = FastNoiseLite(seed)
         
         # Following the original Paper, we should set the Noise type to simplex, and Fractal type to FBm.
-        self.noise.SetNoiseType(NoiseType.FastNoiseLite_OpenSimplex2)
-        self.noise.SetFractalType(FractalType.FastNoiseLite_FractalFBm)
+        self.noise.noise_type = NoiseType.NoiseType_OpenSimplex2
+        #help(FractalType)
+        self.noise.fractal_type = FractalType.FractalType_FBm
+        #self.noise.SetFractalType(FractalType.FastNoiseLite_FractalFBm)
         
         # The number of octaves determines how much detail is added to the noise.
-        self.noise.SetFractalOctaves(5)
+        self.noise.fractal_octaves = 5
         
         # Depending on the desired terrain, we should set the frequency appropriately.
         # A lower frequency created larger biomes, while a higher frequency creates smaller biomes.
-        self.noise.SetFrequency(frequency)
+        self.noise.frequency = frequency
         
         
     """
@@ -52,9 +54,11 @@ class NoiseEngine:
             for x in range(self.chunk_size):
                 world_x = start_x + x
 
-                noise_value = self.noise.GetNoise(world_x, world_y)
+                noise_value = self.noise.get_noise(world_x, world_y)
                 
                 # Simple normalization from -1 to 1 range to 0 to 1 range. When used at generation time, this will be scaled to the desired height.
-                height_map[y, x] = (noise_value + 1) / 2.0
+                height_map[x, y] = (noise_value + 1) / 2.0
+
+        return height_map
                 
                 
