@@ -25,8 +25,7 @@ These functions are defined for working with the coordinate systems and converti
  - tile_to_world(tile_pos: Vector2) -> Vector2
  - world_to_chunk(world_pos: Vector2, tile_pos: Vector2) -> Vector2
  - chunk_to_world(chunk_pos: Vector2, tile_pos: Vector2) -> Vector2
- - distance_to_chunk(pos: Vector2, tile_pos: Vector2) -> float - returns the distance of pos (world coordinates) to the tile specified by tile_pos.
-    0 means inside or exactly on the border.
+ - distance_to_chunk_center(pos: Vector2, tile_pos: Vector2) -> float - returns the distance of pos (world coordinates) to the tile's center specified by tile_pos.
 
 """
 
@@ -38,7 +37,7 @@ from pygame.math import Vector2
 ### Constant variables
 CHUNK_SIZE = Vector2(32, 32)
 DISTANCE_FOR_LOADING_CHUNKS = 200
-DISTANCE_FOR_UNLOADING_CHUNKS = 280
+DISTANCE_FOR_UNLOADING_CHUNKS = 310
 assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
 
 ### Classes Chunk and ChunkManager
@@ -117,9 +116,9 @@ class ChunkManager():
     def chunks(self) -> set[Chunk]:
         return self._chunks
 
-    def _unload_chunks_away_from_camera(self, camera_pos):
+    def _unload_chunks_away_from_camera(self, camera_pos: Vector2):
         for tile_pos in tuple(self._chunks.keys()):
-            if distance_to_chunk(camera_pos, tile_pos) >= DISTANCE_FOR_UNLOADING_CHUNKS:
+            if distance_to_chunk_center(camera_pos, Vector2(tile_pos[0], tile_pos[1])) >= DISTANCE_FOR_UNLOADING_CHUNKS:
                 del self._chunks[tile_pos]
 
     def _load_chunks_near_camera(self, camera_pos: Vector2):
@@ -132,7 +131,7 @@ class ChunkManager():
         for x in range(-num_chunks_x_dir, num_chunks_x_dir):
             for y in range(-num_chunks_y_dir, num_chunks_y_dir):
                 chunk_pos = Vector2(x, y) + camera_tile
-                if distance_to_chunk(camera_pos, chunk_pos) <= DISTANCE_FOR_LOADING_CHUNKS:
+                if distance_to_chunk_center(camera_pos, chunk_pos) <= DISTANCE_FOR_LOADING_CHUNKS:
                     tile_positions.append(chunk_pos)
         # do the chunk loading
         for p in tile_positions:
@@ -158,27 +157,10 @@ def world_to_chunk(world_pos: Vector2, tile_pos: Vector2) -> Vector2:
 def chunk_to_world(chunk_pos: Vector2, tile_pos: Vector2) -> Vector2:
     return chunk_pos + tile_to_world(tile_pos)
 
-def distance_to_chunk(pos: Vector2, tile_pos: Vector2) -> float:
-    """ returns the distance of pos (world coordinates) to the tile specified by tile_pos.
-    0 means inside or exactly on the border. """
-    ### get corner points
-    corner_points = Chunk(tile_pos).get_corner_points()
-    ### characterize the position
-    x, y = 0, 0
-    if all(p.x < pos.x for p in corner_points):
-        x = 1
-    if all(p.x > pos.x for p in corner_points):
-        x = -1
-    if all(p.y < pos.y for p in corner_points):
-        y = 1
-    if all(p.y > pos.y for p in corner_points):
-        y = -1
-    ### calculate the right distance
-    if x == 0 and y == 0: return 0
-    if x != 0 and y != 0: return min(pos.distance_to(p) for p in corner_points)
-    if x == 0 and y != 0: return min(abs(pos.y - p.y) for p in corner_points)
-    if x != 0 and y == 0: return min(abs(pos.x - p.x) for p in corner_points)
-
+def distance_to_chunk_center(pos: Vector2, tile_pos: Vector2) -> float:
+    """ returns the distance of pos (world coordinates) to the tile's center specified by tile_pos. """
+    center = tile_to_world(tile_pos) + CHUNK_SIZE / 2
+    return pos.distance_to(center)
 
 # instantiate ChunkManager Singleton
 CHUNK_MANAGER = ChunkManager()
