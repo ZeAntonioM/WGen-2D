@@ -48,6 +48,7 @@ class Chunk():
      - loaded (aka generated)
     Loading a chunk creates the 8 neighboring Chunk objects if they don't exist already.
     """
+    #number_of_objects = 0 # used to count the number of existing chunks and thereby test the unloading
     
     def __init__(self, tile_pos: Vector2):
         """
@@ -64,6 +65,11 @@ class Chunk():
         self.surface = pygame.Surface(CHUNK_SIZE)
         self._draw_surface()
 
+        #Chunk.number_of_objects += 1 # count the number of existing chunks
+
+    #def __del__(self):
+        #Chunk.number_of_objects -= 1
+
     def get_corner_points(self) -> list[Vector2]:
         """ returns the four corner points of this chunk, given in world coordinates """
         return [tile_to_world(self.tile_pos + Vector2(i, j)) for i, j in ((0, 0), (0, 1), (1, 0), (1, 1))]
@@ -74,6 +80,11 @@ class Chunk():
         ... # chunk generation goes here
         self.is_loaded = True
         self._draw_surface()
+
+    def unload(self):
+        """ unloads the chunk, removes references and "prepares" this chunk to be deleted by garbage collector """
+        self.neighbors.clear()
+        self.surface = None
 
     @property
     def position(self):
@@ -119,6 +130,8 @@ class ChunkManager():
     def _unload_chunks_away_from_camera(self, camera_pos: Vector2):
         for tile_pos in tuple(self._chunks.keys()):
             if distance_to_chunk_center(camera_pos, Vector2(tile_pos[0], tile_pos[1])) >= DISTANCE_FOR_UNLOADING_CHUNKS:
+                chunk = self._chunks[tile_pos]
+                chunk.unload()
                 del self._chunks[tile_pos]
 
     def _load_chunks_near_camera(self, camera_pos: Vector2):
