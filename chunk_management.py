@@ -31,14 +31,26 @@ These functions are defined for working with the coordinate systems and converti
 
 import math
 import pygame
+import numpy as np
 from pygame.math import Vector2
+import noise_engine
 
 
 ### Constant variables
 CHUNK_SIZE = Vector2(32, 32)
+ALTITUDE_NOISE_FREQUENCY = 0.0025 # lower means smoother
+TEMPERATURE_NOISE_FREQUENCY = 0.003 # lower means smoother
+HUMIDITY_NOISE_FREQUENCY = 0.003 # lower means smoother
 DISTANCE_FOR_LOADING_CHUNKS = 200
 DISTANCE_FOR_UNLOADING_CHUNKS = 310
+
+# some asserts and noise setup
 assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
+ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=100, frequency=ALTITUDE_NOISE_FREQUENCY)
+TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=101, frequency=TEMPERATURE_NOISE_FREQUENCY)
+HUMIDITY_NOISE_ENGINE = noise_engine.NoiseEngine(seed=102, frequency=HUMIDITY_NOISE_FREQUENCY)
+assert(ALTITUDE_NOISE_ENGINE.chunk_size == CHUNK_SIZE.x == CHUNK_SIZE.y)
+
 
 ### Classes Chunk and ChunkManager
 
@@ -59,7 +71,12 @@ class Chunk():
         self.tile_pos = tile_pos
 
         self.neighbors = dict() # maps (x,y) to Chunk objects
-
+        self.noise_maps = {
+            "altitude": None,
+            "temperature": None,
+            "humidity": None
+        }
+        
         self.is_loaded = False
         
         self.surface = pygame.Surface(CHUNK_SIZE)
@@ -77,7 +94,10 @@ class Chunk():
     def load(self):
         if self.is_loaded: return
         self._create_neighbors()
-        ... # chunk generation goes here
+        self.noise_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self.noise_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self.noise_maps["humidity"] = HUMIDITY_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        ... # more chunk generation goes here
         self.is_loaded = True
         self._draw_surface()
 
@@ -93,7 +113,19 @@ class Chunk():
     # TODO Change this function so that it properly adds the correct color.
     # Take the biome(s) into consideration.
     def _draw_surface(self):
-        self.surface.fill((70, 255, 50) if self.is_loaded else (60, 40, 40))
+        """ sloppy code that visualizes the state of the chunk (unloaded -> red)
+        and the altitude layer, as well as water """
+        if not self.is_loaded:
+            self.surface.fill((60, 40, 40))
+            return
+        
+        for x in range(int(CHUNK_SIZE.x)):
+            for y in range(int(CHUNK_SIZE.y)):
+                a = self.noise_maps["altitude"]
+                terrain_color = pygame.Color(int(a[x, y]*200), int(a[x, y]*200), int(a[x, y]*120))
+                water_color = pygame.Color(int(a[x, y]*15), int(a[x, y]*40), int(a[x, y]*150))
+                color = water_color if a[x, y] <= 0.3 else terrain_color
+                self.surface.set_at((x, y), color)
 
     def _create_neighbors(self):
         for x in (-1,0,1):
