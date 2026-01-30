@@ -34,8 +34,16 @@ import noise_engine
 
 
 ### Noise setup
-ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=100, frequency=ALTITUDE_NOISE_FREQUENCY, fractal_octaves=ALTITUDE_NOISE_OCTAVES)
-TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=101, frequency=TEMPERATURE_NOISE_FREQUENCY, fractal_octaves=TEMPERATURE_NOISE_OCTAVES)
+ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
+    seed=ALTITUDE_NOISE_SEED,
+    frequency=ALTITUDE_NOISE_FREQUENCY,
+    fractal_octaves=ALTITUDE_NOISE_OCTAVES
+)
+TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(
+    seed=TEMPERATURE_NOISE_SEED,
+    frequency=TEMPERATURE_NOISE_FREQUENCY,
+    fractal_octaves=TEMPERATURE_NOISE_OCTAVES
+)
 
 
 ### Classes Chunk and ChunkManager
@@ -80,6 +88,7 @@ class Chunk():
         if self.is_loaded: return
         self._create_neighbors()
         self.noise_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self._reshape_altitude()
         self.noise_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
         ... # more chunk generation goes here
         self.is_loaded = True
@@ -102,13 +111,16 @@ class Chunk():
         if not self.is_loaded:
             self.surface.fill((60, 40, 40))
             return
-        
+        def get_terrain_color(a):
+            return pygame.Color(int(a*200), int(a*200), int(a*120))
+        def get_water_color(a):
+            return pygame.Color(int(a*15), int(a*40), int(a*150))
+        WATER_LEVEL = 0.2 # hard coded for now
         for x in range(int(CHUNK_SIZE.x)):
             for y in range(int(CHUNK_SIZE.y)):
-                a = self.noise_maps["altitude"]
-                terrain_color = pygame.Color(int(a[x, y]*200), int(a[x, y]*200), int(a[x, y]*120))
-                water_color = pygame.Color(int(a[x, y]*15), int(a[x, y]*40), int(a[x, y]*150))
-                color = water_color if a[x, y] <= 0.3 else terrain_color
+                a = self.noise_maps["altitude"][x, y]
+                color = get_water_color(a) if a <= WATER_LEVEL else \
+                        get_terrain_color(a)
                 self.surface.set_at((x, y), color)
 
     def _create_neighbors(self):
@@ -119,6 +131,26 @@ class Chunk():
                 continue
             CHUNK_MANAGER.create_chunk(Vector2(*tile_pos))
             self.neighbors[tile_pos] = CHUNK_MANAGER.chunks[tile_pos]
+
+    def _reshape_altitude(self):
+        """ Changes the self.noise_maps["altitude"] map to create better looking terrain.
+        This function applies a function [0,1] -> [0,1] to make peaks peakier and plateaus plateauier.
+        Performance is guaranteed by using numpy's linear interpolation. """
+        n = 1001 # 0.001 resolution
+        x_lut = np.linspace(0.0, 1.0, n)
+        y_lut = np.clip(
+            -  0.0016371863
+            -  2.219893*x_lut
+            + 23.44919786*x_lut**2
+            - 67.458179075828*x_lut**3
+            + 81.07774578363*x_lut**4
+            - 33.86123680241*x_lut**5,
+                0, 1
+        )
+        self.noise_maps["altitude"] = \
+            (lambda x: np.interp(x, x_lut, y_lut))(
+                self.noise_maps["altitude"]
+            )
             
 
 class ChunkManager():

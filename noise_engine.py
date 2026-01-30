@@ -10,9 +10,9 @@ class NoiseEngine:
 
     def __init__(self, seed, frequency=0.01, fractal_octaves=5):
         """
-        There should only be one instance of this class.
         This class is resposible for generating noise values for terrain generation.
         FastNoiseLite is used for noise generation, and the main parameters are set at initialization. 
+        For multiple different height maps, instance this engine multiple times.
         
         @param seed: The seed for the noise generation. Should be randomized for different worlds, or given by the user for consistent worlds.
         @param frequency: The frequency of the noise.

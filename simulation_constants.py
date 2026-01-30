@@ -10,7 +10,7 @@ from pygame.math import Vector2
 
 ### Constants
 
-#SEED = "123456" # not in use yet
+SEED = 123456
 CHUNK_SIZE = Vector2(32, 32)
 
 # chunk loading
@@ -18,8 +18,10 @@ DISTANCE_FOR_LOADING_CHUNKS: int = 200 # chunks inside this distance get loaded
 DISTANCE_FOR_UNLOADING_CHUNKS: int = 310 # chunks outside this distance get unloaded/deleted
 
 # noise settings
+ALTITUDE_NOISE_SEED = 10 # gets added to SEED, just to make the altitude map unique
 ALTITUDE_NOISE_FREQUENCY = 0.0025 # lower means smoother
 ALTITUDE_NOISE_OCTAVES = 20
+TEMPERATURE_NOISE_SEED = 11
 TEMPERATURE_NOISE_FREQUENCY = 0.003
 TEMPERATURE_NOISE_OCTAVES = 5
 
