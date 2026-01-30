@@ -3,6 +3,8 @@
 import numpy as np
 from pyfastnoiselite.pyfastnoiselite import FastNoiseLite, NoiseType, FractalType
 
+from simulation_constants import *
+
 
 class NoiseEngine:
 
@@ -15,8 +17,6 @@ class NoiseEngine:
         @param seed: The seed for the noise generation. Should be randomized for different worlds, or given by the user for consistent worlds.
         @param frequency: The frequency of the noise.
         """
-        
-        self.chunk_size = 32
         
         # initialize FastNoiseLite with seed
         self.noise = FastNoiseLite(seed)
@@ -34,24 +34,24 @@ class NoiseEngine:
         
         
     
-    def get_noise_height_map(self, chunk_x, chunk_y):
+    def get_noise_height_map(self, chunk_x, chunk_y) -> np.array:
         """
         Generate a height map for a given chunk using FastNoiseLite.
         
-        @param chunk_x: The x coordinate of the chunk. Must me the "world" coordinate, not the local chunk coordinate.
-        @param chunk_y: The y coordinate of the chunk. Must me the "world" coordinate, not the local chunk coordinate.
+        @param chunk_x: The x coordinate of the chunk. Must be the "world"/tile coordinate, not the local chunk coordinate.
+        @param chunk_y: The y coordinate of the chunk. Must be the "world"/tile coordinate, not the local chunk coordinate.
         @return: A 2D numpy array representing the height map for the chunk.
         """
         
         # We create a height map of size chunk_size x chunk_size, as each chunk is of that size. Built it in a scalable way so that we can change chunk size later if needed.
-        height_map = np.zeros((self.chunk_size, self.chunk_size), dtype=np.float32)
-        start_x = float(chunk_x * self.chunk_size)
-        start_y = float(chunk_y * self.chunk_size)
+        height_map = np.zeros((int(CHUNK_SIZE.x), int(CHUNK_SIZE.y)), dtype=np.float32)
+        start_x = float(chunk_x * CHUNK_SIZE.x)
+        start_y = float(chunk_y * CHUNK_SIZE.y)
         
-        for y in range(self.chunk_size):
+        for y in range(int(CHUNK_SIZE.y)):
             world_y = start_y + y
             
-            for x in range(self.chunk_size):
+            for x in range(int(CHUNK_SIZE.x)):
                 world_x = start_x + x
 
                 noise_value = self.noise.get_noise(world_x, world_y)

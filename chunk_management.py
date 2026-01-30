@@ -1,11 +1,6 @@
 #!/use/bin/python
 """ This file contains the classes Chunk and ChunkManager.
-
-The following global variables are defined:
- - CHUNK_SIZE: pygame.math.Vector2 - the size of every chunk
- - DISTANCE_FOR_LOADING_CHUNKS: int - chunks inside this distance are loaded
- - DISTANCE_FOR_UNLOADING_CHUNKS: int - chunks outside this distance are unloaded/deleted
- - CHUNK_MANAGER: ChunkManager - a singleton holding the chunk objects and managing the loading and unloading of chunks
+It also defines a CHUNK_MANAGER singleton instance.
 
 All coordinates are modeled as pygame.math.Vector2.
 
@@ -31,25 +26,16 @@ These functions are defined for working with the coordinate systems and converti
 
 import math
 import pygame
-import numpy as np
 from pygame.math import Vector2
+import numpy as np
+
+from simulation_constants import *
 import noise_engine
 
 
-### Constant variables
-CHUNK_SIZE = Vector2(32, 32)
-ALTITUDE_NOISE_FREQUENCY = 0.0025 # lower means smoother
-TEMPERATURE_NOISE_FREQUENCY = 0.003 # lower means smoother
-HUMIDITY_NOISE_FREQUENCY = 0.003 # lower means smoother
-DISTANCE_FOR_LOADING_CHUNKS = 200
-DISTANCE_FOR_UNLOADING_CHUNKS = 310
-
-# some asserts and noise setup
-assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
-ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=100, frequency=ALTITUDE_NOISE_FREQUENCY)
-TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=101, frequency=TEMPERATURE_NOISE_FREQUENCY)
-HUMIDITY_NOISE_ENGINE = noise_engine.NoiseEngine(seed=102, frequency=HUMIDITY_NOISE_FREQUENCY)
-assert(ALTITUDE_NOISE_ENGINE.chunk_size == CHUNK_SIZE.x == CHUNK_SIZE.y)
+### Noise setup
+ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=100, frequency=ALTITUDE_NOISE_FREQUENCY, fractal_octaves=ALTITUDE_NOISE_OCTAVES)
+TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(seed=101, frequency=TEMPERATURE_NOISE_FREQUENCY, fractal_octaves=TEMPERATURE_NOISE_OCTAVES)
 
 
 ### Classes Chunk and ChunkManager
@@ -73,8 +59,7 @@ class Chunk():
         self.neighbors = dict() # maps (x,y) to Chunk objects
         self.noise_maps = {
             "altitude": None,
-            "temperature": None,
-            "humidity": None
+            "temperature": None
         }
         
         self.is_loaded = False
@@ -96,7 +81,6 @@ class Chunk():
         self._create_neighbors()
         self.noise_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
         self.noise_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
-        self.noise_maps["humidity"] = HUMIDITY_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
         ... # more chunk generation goes here
         self.is_loaded = True
         self._draw_surface()
