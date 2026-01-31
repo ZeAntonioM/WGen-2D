@@ -49,7 +49,7 @@ while running:
         d.blit(c.surface, tile_to_world
                (c.position))
     pygame.draw.circle(d,(0, 0, 255), camera_pos, 4)
-    d.blit(grid, (0,0))
+    #d.blit(grid, (0,0))
     
     pygame.display.update()
     

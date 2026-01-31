@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from biome_placement import CHUNK_SIZE
-from biome_placement import get_chunk_biome_map, N_BIOMES
+from simulation_constants import CHUNK_SIZE
+from biome_placement import get_chunk_biome_map, N_BIOMES, biome_vectors_to_rgb
 
 
 # ============================================================
@@ -18,55 +18,17 @@ def generate_test_chunk():
     precipitation: increases from bottom (0) to top (1)
     """
 
-    altitude = np.zeros((CHUNK_SIZE, CHUNK_SIZE), dtype=np.float32)
+    altitude = np.zeros((int(CHUNK_SIZE.x), int(CHUNK_SIZE.y)), dtype=np.float32)
 
     temperature = np.linspace(
-        0.0, 1.0, CHUNK_SIZE, dtype=np.float32
-    )[None, :].repeat(CHUNK_SIZE, axis=0)
+        0.0, 1.0, int(CHUNK_SIZE.y), dtype=np.float32
+    )[None, :].repeat(int(CHUNK_SIZE.x), axis=0)
 
     precipitation = np.linspace(
-        0.0, 1.0, CHUNK_SIZE, dtype=np.float32
-    )[:, None].repeat(CHUNK_SIZE, axis=1)
+        0.0, 1.0, int(CHUNK_SIZE.y), dtype=np.float32
+    )[:, None].repeat(int(CHUNK_SIZE.x), axis=1)
 
     return altitude, precipitation, temperature
-
-
-# ============================================================
-# Biome colors (DEBUG / VISUALIZATION ONLY)
-# ============================================================
-
-BIOME_COLORS = np.array([
-    [0.80, 0.80, 0.90],  # Tundra
-    [0.40, 0.60, 0.20],  # Taiga
-    [0.80, 0.80, 0.30],  # Temperate grassland
-    [0.30, 0.70, 0.30],  # Temperate forest
-    [0.10, 0.50, 0.30],  # Temperate rainforest
-    [0.90, 0.80, 0.30],  # Subtropical desert
-    [0.70, 0.70, 0.20],  # Savanna
-    [0.20, 0.80, 0.30],  # Tropical seasonal forest
-    [0.10, 0.60, 0.10],  # Tropical rainforest
-    #[0.60, 0.60, 0.60],  # Alpine / extra
-], dtype=np.float32)
-
-
-# ============================================================
-# Visualization
-# ============================================================
-
-def biome_vectors_to_rgb(biome_vectors: np.ndarray) -> np.ndarray:
-    """
-    Converts (H, W, B) biome vectors into an RGB image via weighted color mixing.
-    """
-
-    assert biome_vectors.shape[-1] == N_BIOMES
-
-    rgb = np.tensordot(
-        biome_vectors,
-        BIOME_COLORS,
-        axes=([2], [0])
-    )
-
-    return np.clip(rgb, 0.0, 1.0)
 
 
 # ============================================================
@@ -77,7 +39,7 @@ def main():
     altitude, precipitation, temperature = generate_test_chunk()
 
     biome_vectors = get_chunk_biome_map(
-        altitude=altitude,
+        #altitude=altitude,
         precipitation=precipitation,
         temperature=temperature
     )

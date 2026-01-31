@@ -7,10 +7,11 @@ a function get_chunk_biome_map (at runtime).
 """
 
 import numpy as np
+import pygame
 from enum import Enum
 from scipy.ndimage import distance_transform_edt
 
-CHUNK_SIZE = 512
+from simulation_constants import CHUNK_SIZE
 
 
 ### Constants
@@ -28,8 +29,19 @@ class Biome(Enum):
     SAVANNA = 6
     TROPICAL_SEASONAL_FOREST = 7
     TROPICAL_RAINFOREST = 8
-    #ALPINE = 9
-    #OCEAN = 10
+BIOME_COLORS = np.array([
+    [0.80, 0.80, 0.90],  # Tundra
+    [0.40, 0.60, 0.20],  # Taiga
+    [0.80, 0.80, 0.30],  # Temperate grassland
+    [0.30, 0.70, 0.30],  # Temperate forest
+    [0.10, 0.50, 0.30],  # Temperate rainforest
+    [0.90, 0.80, 0.30],  # Subtropical desert
+    [0.70, 0.70, 0.20],  # Savanna
+    [0.20, 0.80, 0.30],  # Tropical seasonal forest
+    [0.10, 0.60, 0.10],  # Tropical rainforest
+], dtype=np.float32)
+assert(len(BIOME_COLORS) == N_BIOMES)
+
 
 # Resolution of the Whittaker diagram LUT (look up table)
 WHITTAKER_RES_T = 512
@@ -37,10 +49,9 @@ WHITTAKER_RES_P = 512
 
 # Softness of biome transitions (in LUT pixels)
 # Can be scalar or array of shape (N_BIOMES,)
-BIOME_SIGMA = 5.0
+BIOME_SIGMA = 20.0 # 1.0 means no blending, 20.0 is some goood blending
 
 DTYPE = np.float32
-
 
 
 ### Whittaker map setup
@@ -112,17 +123,15 @@ _BIOME_WEIGHT_LUT = _build_biome_weight_lut(_WHITTAKER_BIOME_MAP)
 ### public function for biome mapping
 
 def get_chunk_biome_map(
-    altitude: np.ndarray,
     precipitation: np.ndarray,
     temperature: np.ndarray
 ) -> np.ndarray:
     """
-    Returns a (CHUNK_SIZE, CHUNK_SIZE, N_BIOMES) array.
+    Returns a (CHUNK_SIZE.x, CHUNK_SIZE.y, N_BIOMES) array.
     Each entry is a probability vector (sum = 1).
     """
-    assert altitude.shape == (CHUNK_SIZE, CHUNK_SIZE)
-    assert precipitation.shape == (CHUNK_SIZE, CHUNK_SIZE)
-    assert temperature.shape == (CHUNK_SIZE, CHUNK_SIZE)
+    assert precipitation.shape == (int(CHUNK_SIZE.x), int(CHUNK_SIZE.y))
+    assert temperature.shape == (int(CHUNK_SIZE.x), int(CHUNK_SIZE.y))
     # clamp just in case
     temperature = np.clip(temperature, 0.0, 1.0)
     precipitation = np.clip(precipitation, 0.0, 1.0)
@@ -132,10 +141,21 @@ def get_chunk_biome_map(
 
     biome_vectors = _BIOME_WEIGHT_LUT[t_idx, p_idx]
 
-    # altitude
-    # water_mask = altitude < 0.2
-    # biome_vectors[water_mask] *= 0.0
-    # biome_vectors[water_mask, Biome.OCEAN] = 1.0
-    # maybe Biome.ALPINE
-
     return biome_vectors
+
+
+### public functions for biome colors
+
+def biome_vectors_to_rgb(biome_vectors: np.ndarray) -> np.ndarray:
+    """
+    Converts (W, H, B) biome vectors into an RGB image via weighted color mixing.
+    """
+    assert biome_vectors.shape[-1] == N_BIOMES
+
+    rgb = np.tensordot(
+        biome_vectors,
+        BIOME_COLORS,
+        axes=([2], [0])
+    )
+
+    return rgb
