@@ -1,8 +1,14 @@
 
 import pygame
 import warnings
+
+# Import everything from the split files
+# This allows 'import settings' to work exactly as it did before
 from app_settings import *
 from simulation_settings import *
+
+# --- VALIDATION CHECKS ---
+# We keep these here to ensure the combined settings are valid.
 
 # 1. Loading buffer check
 if not (LOAD_DISTANCE + 10 < UNLOAD_DISTANCE):

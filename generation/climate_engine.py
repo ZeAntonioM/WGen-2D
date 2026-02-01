@@ -36,24 +36,28 @@ class ClimateEngine:
                 trace_y = start_world_y + pixel_y
                 
                 current_moisture = 0.0
-                
+    
                 for s in range(settings.MAX_STEPS):
-                  
-                    alt = self.terrain.get_noise_at(trace_x, trace_y)
                     
-                    if alt < settings.SEA_LEVEL:
-                        current_moisture += settings.MOISTURE_PICKUP
-                        if current_moisture >= 1.0:
-                            current_moisture = 1.0
-                            break
-                    elif alt > 0.5: 
+                    alt = self.terrain.get_noise_at(trace_x, trace_y)
+                    meters_above_sea = alt + 0.4
+                    if meters_above_sea < 0: meters_above_sea = 0
+
+                    pickup = max(0.0, min(1.4, 1.4-meters_above_sea)) / 1.4
+                    pickup *= pickup*pickup
+                
+                    current_moisture += pickup * settings.MOISTURE_PICKUP / settings.MAX_STEPS
+                    if current_moisture >= 1.0:
+                        current_moisture = 1.0
+                        break
+                    if alt > 0.5: 
 
                         height_excess = alt - 0.5
-                        moisture_loss = height_excess * settings.MOUNTAIN_COST 
+                        moisture_loss = height_excess * settings.MOUNTAIN_COST / settings.MAX_STEPS
                         
                         current_moisture -= moisture_loss
                     else:
-                        current_moisture -= settings.DECAY_ON_LAND
+                        pass#current_moisture -= settings.DECAY_ON_LAND
                     
                     wx, wy = self.wind.get_wind_at(trace_x, trace_y)
                     mag = math.sqrt(wx*wx + wy*wy)
@@ -61,8 +65,7 @@ class ClimateEngine:
                     
                     trace_x -= (wx / mag) * settings.STEP_SIZE
                     trace_y -= (wy / mag) * settings.STEP_SIZE
-                
-              
+
                 small_map[i, j] = max(0.0, min(1.0, current_moisture))
                 
         if step == 1:

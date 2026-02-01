@@ -28,11 +28,11 @@ BASE_TEMP = 25.0
 TEMP_LAPSE_RATE = 20.0  
 
 # --- CLIMATE SIMULATION ---
-MAX_STEPS = 60          # Bigger -> more precise, slower
-STEP_SIZE = 16.0        # Bigger -> Faster, less precise
+MAX_STEPS = 40          # Bigger -> more precise, slower
+STEP_SIZE = 3        # Bigger -> Faster, less precise
 CLIMATE_STEP = 4        # Bigger -> less detail, faster   
 
 # Physics
-MOISTURE_PICKUP = 0.05  # Moisture gain on water
-DECAY_ON_LAND = 0.02    # constant moisture cost on land
-MOUNTAIN_COST = 1       # Cost on moisture from passing throught a mountain
+MOISTURE_PICKUP = 1  # Moisture gain on water
+DECAY_ON_LAND = 0    # constant moisture cost on land
+MOUNTAIN_COST = 10       # Cost on moisture from passing throught a mountain
