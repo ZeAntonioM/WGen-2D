@@ -1,4 +1,4 @@
-import chunk_management
+import chunk_management as chunk_management
 from chunk_management import *
 
 

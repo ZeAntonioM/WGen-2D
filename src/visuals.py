@@ -2,7 +2,7 @@
 """
 
 import pygame
-import chunk_management
+import chunk_management as chunk_management
 from chunk_management import *
 
 d = pygame.display.set_mode((1200, 600))
@@ -49,7 +49,7 @@ while running:
         d.blit(c.surface, tile_to_world
                (c.position))
     pygame.draw.circle(d,(0, 0, 255), camera_pos, 4)
-    d.blit(grid, (0,0))
+    #d.blit(grid, (0,0))
     
     pygame.display.update()
     

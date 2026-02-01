@@ -1,11 +1,6 @@
 #!/use/bin/python
 """ This file contains the classes Chunk and ChunkManager.
-
-The following global variables are defined:
- - CHUNK_SIZE: pygame.math.Vector2 - the size of every chunk
- - DISTANCE_FOR_LOADING_CHUNKS: int - chunks inside this distance are loaded
- - DISTANCE_FOR_UNLOADING_CHUNKS: int - chunks outside this distance are unloaded/deleted
- - CHUNK_MANAGER: ChunkManager - a singleton holding the chunk objects and managing the loading and unloading of chunks
+It also defines a CHUNK_MANAGER singleton instance.
 
 All coordinates are modeled as pygame.math.Vector2.
 
@@ -32,13 +27,25 @@ These functions are defined for working with the coordinate systems and converti
 import math
 import pygame
 from pygame.math import Vector2
+import numpy as np
+
+from simulation_constants import *
+import noise_engine as noise_engine
+from biome_placement import get_chunk_biome_map, biome_vectors_to_rgb
 
 
-### Constant variables
-CHUNK_SIZE = Vector2(32, 32)
-DISTANCE_FOR_LOADING_CHUNKS = 200
-DISTANCE_FOR_UNLOADING_CHUNKS = 310
-assert(DISTANCE_FOR_LOADING_CHUNKS < DISTANCE_FOR_UNLOADING_CHUNKS)
+### Noise setup
+ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
+    seed=ALTITUDE_NOISE_SEED,
+    frequency=ALTITUDE_NOISE_FREQUENCY,
+    fractal_octaves=ALTITUDE_NOISE_OCTAVES
+)
+TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(
+    seed=TEMPERATURE_NOISE_SEED,
+    frequency=TEMPERATURE_NOISE_FREQUENCY,
+    fractal_octaves=TEMPERATURE_NOISE_OCTAVES
+)
+
 
 ### Classes Chunk and ChunkManager
 
@@ -59,7 +66,13 @@ class Chunk():
         self.tile_pos = tile_pos
 
         self.neighbors = dict() # maps (x,y) to Chunk objects
-
+        self.env_maps = {
+            "altitude": None,
+            "temperature": None,
+            "precipitation": None,
+            "biomes": None
+        }
+        
         self.is_loaded = False
         
         self.surface = pygame.Surface(CHUNK_SIZE)
@@ -77,7 +90,14 @@ class Chunk():
     def load(self):
         if self.is_loaded: return
         self._create_neighbors()
-        ... # chunk generation goes here
+        self.env_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self._reshape_altitude()
+        self.env_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        # TODO: calculate wind from temperature
+        # TODO: calculate precipitation from wind
+        self.env_maps["precipitation"] = self.env_maps["temperature"]#np.zeros((int(CHUNK_SIZE.x), int(CHUNK_SIZE.y)), dtype=np.float32)
+        self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+        # TODO: asset placement
         self.is_loaded = True
         self._draw_surface()
 
@@ -93,7 +113,30 @@ class Chunk():
     # TODO Change this function so that it properly adds the correct color.
     # Take the biome(s) into consideration.
     def _draw_surface(self):
-        self.surface.fill((70, 255, 50) if self.is_loaded else (60, 40, 40))
+        """ code that visualizes the state of the chunk (unloaded -> red)
+        and the biomes as colors anad the altitude layer as brightness.
+        water is set by cutoff and set to blue """
+        
+        if not self.is_loaded:
+            self.surface.fill((60, 40, 40))
+            return
+        
+        a = self.env_maps["altitude"]
+        WATER_LEVEL = 0.2 # hard coded for now
+        WATER_COLOR = [0.0, 0.1, 0.3]
+        water_mask = a <= WATER_LEVEL
+
+        # base colors by biomes
+        biome_colors = biome_vectors_to_rgb(self.env_maps["biomes"])
+        # set water blue
+        biome_colors[water_mask] = np.array(WATER_COLOR)/WATER_LEVEL
+
+        # for now, altitude controls brightness
+        colors = biome_colors * a[:, :, np.newaxis]
+
+        # apply to surface
+        pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
+        pygame.surfarray.blit_array(self.surface, pygame_colors)
 
     def _create_neighbors(self):
         for x in (-1,0,1):
@@ -103,6 +146,26 @@ class Chunk():
                 continue
             CHUNK_MANAGER.create_chunk(Vector2(*tile_pos))
             self.neighbors[tile_pos] = CHUNK_MANAGER.chunks[tile_pos]
+
+    def _reshape_altitude(self):
+        """ Changes the self.env_maps["altitude"] map to create better looking terrain.
+        This function applies a function [0,1] -> [0,1] to make peaks peakier and plateaus plateauier.
+        Performance is guaranteed by using numpy's linear interpolation. """
+        n = 1001 # 0.001 resolution
+        x_lut = np.linspace(0.0, 1.0, n)
+        y_lut = np.clip(
+            -  0.0016371863
+            -  2.219893*x_lut
+            + 23.44919786*x_lut**2
+            - 67.458179075828*x_lut**3
+            + 81.07774578363*x_lut**4
+            - 33.86123680241*x_lut**5,
+                0, 1
+        )
+        self.env_maps["altitude"] = \
+            (lambda x: np.interp(x, x_lut, y_lut))(
+                self.env_maps["altitude"]
+            )
             
 
 class ChunkManager():
