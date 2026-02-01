@@ -3,7 +3,7 @@
 import numpy as np
 from pyfastnoiselite.pyfastnoiselite import FastNoiseLite, NoiseType, FractalType
 
-from src.simulation_constants import *
+from simulation_constants import *
 
 
 class NoiseEngine:

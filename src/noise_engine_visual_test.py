@@ -7,9 +7,9 @@ The chunk (3, 4) is missing on purpose.
 """
 
 import pygame
-from src.noise.noise_engine import *
+from noise_engine import *
 import numpy as np
-from src.simulation_constants import *
+from simulation_constants import *
 
 
 ne = NoiseEngine(seed=13426356)

@@ -29,9 +29,9 @@ import pygame
 from pygame.math import Vector2
 import numpy as np
 
-from src.simulation_constants import *
-import src.noise.noise_engine as noise_engine
-from src.biome.biome_placement import get_chunk_biome_map, biome_vectors_to_rgb
+from simulation_constants import *
+import noise_engine as noise_engine
+from biome_placement import get_chunk_biome_map, biome_vectors_to_rgb
 
 
 ### Noise setup
