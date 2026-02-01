@@ -4,7 +4,6 @@ import settings
 import graphics.visuals as visuals
 from world.chunk_manager import CHUNK_MANAGER
 from world.utils import tile_to_world
-import settings # Ensure you use settings.CHUNK_SIZE if needed
 from generation.wind_engine import WindEngine
 
 def main():
@@ -14,6 +13,8 @@ def main():
 
     # --- INITIALIZATION ---
     # Instantiate the Logic Class
+    # Ensure settings.WIND_SEED and settings.WIND_SCALE exist in your settings.py
+    # or use settings.GLOBAL_SEED and hardcoded scale if preferred
     wind_engine = WindEngine(seed=settings.WIND_SEED, scale=settings.WIND_SCALE)
     
     camera_pos = pygame.Vector2(0, 0)
@@ -22,6 +23,10 @@ def main():
     # Visibility Flags
     show_wind = True
     show_grid = True
+    
+    # View Mode (State machine for what the chunks look like)
+    # Options: "biomes", "altitude", "temperature", "precipitation"
+    view_mode = "biomes" 
     
     running = True
     while running:
@@ -40,6 +45,21 @@ def main():
                 if event.key == pygame.K_w: show_wind = not show_wind
                 if event.key == pygame.K_c: show_grid = not show_grid
 
+                # --- DEBUG VIEW MODES ---
+                new_mode = None
+                if event.key == pygame.K_1: new_mode = "biomes"
+                if event.key == pygame.K_2: new_mode = "altitude"
+                if event.key == pygame.K_3: new_mode = "temperature"
+                if event.key == pygame.K_4: new_mode = "precipitation"
+                
+                # If we switched modes, update all chunks immediately
+                if new_mode and new_mode != view_mode:
+                    view_mode = new_mode
+                    print(f"Switching view to: {view_mode}")
+                    for chunk in CHUNK_MANAGER.chunks.values():
+                        # We call the new method we defined in world/chunk.py
+                        chunk.update_graphics(view_mode)
+
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT: key_map["left"] = False
                 if event.key == pygame.K_RIGHT: key_map["right"] = False
@@ -53,8 +73,17 @@ def main():
         if key_map["up"]: camera_pos.y -= move_speed
         if key_map["down"]: camera_pos.y += move_speed
         
-        # Update Content
+        # Update Content (Loads/Unloads chunks)
         CHUNK_MANAGER.update(camera_pos)
+
+        # Note: Newly loaded chunks default to "biomes". 
+        # If you are in a debug mode, you might see mixed chunks until you move or press the key.
+        # To fix this perfectly, we'd pass 'view_mode' to the ChunkManager, 
+        # but for now, we can just enforce it on visible chunks roughly:
+        if view_mode != "biomes":
+             for chunk in CHUNK_MANAGER.chunks.values():
+                 # Ideally, check if it needs updating to save performance
+                 chunk.update_graphics(view_mode)
 
         # --- DRAW ---
         display.fill(settings.COLOR_BG)
@@ -70,11 +99,10 @@ def main():
         
         # 2. Draw Visuals (Presentation)
         if show_grid:
-            # We pass the constants needed
             visuals.draw_infinite_grid(display, camera_pos, settings.CHUNK_SIZE)
         
         if show_wind:
-            # We pass the logic engine to the visualizer
+            # We pass the wind engine so we can draw arrows
             visuals.draw_wind_arrows(display, camera_pos, wind_engine)
         
         # 3. Draw Player
