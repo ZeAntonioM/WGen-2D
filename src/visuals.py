@@ -2,8 +2,8 @@
 """
 
 import pygame
-import chunk_management
-from chunk_management import *
+import src.chunk.chunk_management as chunk_management
+from src.chunk.chunk_management import *
 
 d = pygame.display.set_mode((1200, 600))
 

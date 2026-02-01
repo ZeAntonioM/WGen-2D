@@ -1,5 +1,5 @@
-import chunk_management
-from chunk_management import *
+import src.chunk.chunk_management as chunk_management
+from src.chunk.chunk_management import *
 
 
 size = Vector2(100, 50)

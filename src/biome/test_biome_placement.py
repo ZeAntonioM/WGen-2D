@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from simulation_constants import CHUNK_SIZE
-from biome_placement import get_chunk_biome_map, N_BIOMES, biome_vectors_to_rgb
+from src.simulation_constants import CHUNK_SIZE
+from src.biome.biome_placement import get_chunk_biome_map, N_BIOMES, biome_vectors_to_rgb
 
 
 # ============================================================

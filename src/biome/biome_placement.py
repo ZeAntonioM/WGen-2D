@@ -11,7 +11,7 @@ import pygame
 from enum import Enum
 from scipy.ndimage import distance_transform_edt
 
-from simulation_constants import CHUNK_SIZE
+from src.simulation_constants import CHUNK_SIZE
 
 
 ### Constants
