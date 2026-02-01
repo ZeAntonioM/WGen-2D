@@ -22,11 +22,22 @@ Observing how such games balance repetition, large-scale structure, and local de
 
 ## Related Work
 
-[Todo:
-- literature
-- introduce our main source (AutoBiomes) and explain how we can use the presented methods for our project, but still have to modify them to be infinitely scalable
+### AutoBiomes
 
-]
+[AutoBiomes (Chen et al., 2020)](https://cgvr.cs.uni-bremen.de/papers/cgi20/AutoBiomes.pdf) is an article that presents a procedural terrain generation method for Unreal Engine 4. The main idea of the article is to generate a terrain based on multiple environment maps, in order to create a coherent, natural-looking world. It proposes a pipeline that eliminates the common usage of "simplex noise -> heightmap -> texture" and instead focuses on generating multiple environment maps that influence each other, in order to create a more complex and believable world. The proposed pipeline, in which our work is based, consists of 4 main steps:
+
+1. Rough-Based Terrain Generation: The terrain is generated using multiple octaves of simplex noise using `FastNoiseSIMD` library.
+2. Climate Simulation: It's a complex nested pipeline that computes temperature, wind and precipitation maps.
+3. Terrain Refinement: Creates biomes based on DEMs (Digital Elevation Models) and refines the terrain accordingly.
+4. Asset Placement: Populates the biomes with assets, that have four different meshes deppending on the seasonal look.
+
+This article is a great starting point for our project, as it provides a solid methodology for generating coherent terrains. However, the proposed method is not designed for infinite worlds, as it generates a fixed-size terrain. Moreover, the paper presents a 3D terrain generation, while our project focuses on a 2D top-down world. Therefore, we need to adapt and extend the proposed method to fit our requirements, especially in terms of chunk-based generation and real-time performance.
+
+
+### FastNoiseLite
+
+The AutoBiomes paper uses the FastNoiseSIMD library for generating noise maps. Despite its good performance, this library is not actively maintained anymore. Therefore, we opted to use FastNoiseLite, which is its successor. FastNoiseLite library is a popular open-source library, a direct successor of FastNoise, which provides a wide range of noise algorithms and utilities for procedural content generation. It is designed for high performance and ease of use and has support for 17 different languages, including C++, C# and Java. Despite the fact that it has support for so many languages, the library is not available in Python. However, there is a Python wrapper for FastNoise, called [`pyfastnoiselite`](https://pypi.org/project/pyfastnoiselite/), which we used in our project to generate various noise maps, such as altitude and temperature maps. 
+
 
 ## Methodology of our approach
 
@@ -44,7 +55,7 @@ The following image shows the player as a blue dot in the middle, the generated 
 
 ### Noise
 
-Next, we followed the pipeline used by AutoBiomes, which consists of synthetically generating the base terrain using random noise, simulating climate in the environment lastly placing the assets. 
+Next, we followed a similar pipeline as the one used by AutoBiomes, which consists of synthetically generating the base terrain using random noise, simulating climate in the environment lastly placing the assets. 
 
 Our code follows this model by implementing multiple environment maps for each chunk. An environment map is a numpy array, which maps a 2d chunk coordinate to a value. The environment maps that we define are:
 
