@@ -1,9 +1,12 @@
+import world.chunk_manager as chunk_manager
+from world.chunk_manager import *
 import chunk_management as chunk_management
 from chunk_management import *
 
 
+
 size = Vector2(100, 50)
-chunk_management.CHUNK_SIZE = size
+chunk_manager.CHUNK_SIZE = size
 c = Chunk(Vector2(1, 0))
 c.load()
 #assert c.get_corner_points() == [Vector2(size.x,0), size, Vector2(size.x*2, 0), Vector2(size.x*2, size.y)]
