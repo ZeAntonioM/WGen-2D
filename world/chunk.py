@@ -10,6 +10,9 @@ from world.utils import tile_to_world
 from generation import noise_engine
 from generation.biome_placement import get_chunk_biome_map, biome_vectors_to_rgb
 
+from generation.climate_engine import ClimateEngine
+from generation.wind_engine import WindEngine 
+
 # --- INITIALIZE NOISE ENGINES ---
 # We create these once so we don't re-init them for every chunk
 ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
@@ -22,6 +25,12 @@ TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(
     frequency=settings.TEMPERATURE_NOISE_FREQUENCY,
     fractal_octaves=settings.TEMPERATURE_NOISE_OCTAVES
 )
+
+# Initialize Wind
+WIND_ENGINE = WindEngine(seed=settings.GLOBAL_SEED, scale=settings.WIND_SCALE)
+
+# Initialize Climate
+CLIMATE_ENGINE = ClimateEngine(ALTITUDE_NOISE_ENGINE, WIND_ENGINE)
 
 class Chunk:
     def __init__(self, tile_pos: Vector2):
@@ -58,10 +67,16 @@ class Chunk:
         # 3. Calculate Derived Maps
         # TODO: Implement Wind-based precipitation here later!
         # For now, we just copy temperature as placeholder or use zeros
-        self.env_maps["precipitation"] = self.env_maps["temperature"] 
-        
-        # 4. Biomes
-        self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+        self.env_maps["precipitation"] = CLIMATE_ENGINE.get_precipitation_map(
+            self.tile_pos.x, 
+            self.tile_pos.y
+        )
+
+        # 4. Biomes (This line stays the same, but now uses REAL precipitation!)
+        self.env_maps["biomes"] = get_chunk_biome_map(
+            self.env_maps["precipitation"], 
+            self.env_maps["temperature"]
+)
         
         self.is_loaded = True
         self._draw_surface()
@@ -90,6 +105,18 @@ class Chunk:
         
         # Identify water pixels
         water_mask = a <= WATER_LEVEL
+
+        if True:
+            # Draw grayscale moisture map (Blueish)
+            p = self.env_maps["precipitation"]
+            # Convert 0-1 float to 0-255 RGB (Blue channel)
+            p_viz = (p * 255).astype(np.uint8)
+            
+            # Create RGB array: (R=0, G=p, B=p) -> Cyan/Blue gradients
+            zeros = np.zeros_like(p_viz)
+            rgb = np.dstack((zeros, p_viz, p_viz)) 
+            pygame.surfarray.blit_array(self.surface, rgb)
+            return
 
         # Base colors from Biome Map
         biome_colors = biome_vectors_to_rgb(self.env_maps["biomes"])

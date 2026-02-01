@@ -70,3 +70,12 @@ BIOME_SIGMA = 20.0
 
 WIND_SEED = 999
 WIND_SCALE = 2000.0 # Controls how "large" the wind patterns are
+
+# --- WATER & CLIMATE LEVELS ---
+# The noise engine returns values from 0.0 to 1.0.
+# Any altitude below 0.2 is considered Water/Ocean.
+SEA_LEVEL = 0.2 
+
+# Climate Physics
+BASE_TEMP = 25.0        # Average global temperature
+TEMP_LAPSE_RATE = 20.0  # Temperature drop per unit of altitude
