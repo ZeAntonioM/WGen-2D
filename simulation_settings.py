@@ -28,6 +28,7 @@ BASE_TEMP = 25.0
 TEMP_LAPSE_RATE = 20.0  
 
 # --- CLIMATE SIMULATION ---
+<<<<<<< Updated upstream
 MAX_STEPS = 60          # Bigger -> more precise, slower
 STEP_SIZE = 16.0        # Bigger -> Faster, less precise
 CLIMATE_STEP = 4        # Bigger -> less detail, faster   
