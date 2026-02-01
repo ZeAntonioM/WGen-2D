@@ -2,8 +2,8 @@
 import pygame
 
 # Screen Settings
-SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1200 *1.5
+SCREEN_HEIGHT = 600 *1.5
 FPS = 60
 
 # World Generation
@@ -16,5 +16,7 @@ COLOR_GRID = (70, 70, 70)
 COLOR_WIND = (100, 200, 255)
 COLOR_PLAYER = (0, 0, 255)
 
-# Chunk Settings (If you don't already have them in chunk_management)
-CHUNK_SIZE = pygame.Vector2(32 * 16, 32 * 16) # Example
+# Chunk Management Settings
+CHUNK_SIZE = pygame.Vector2(32, 32)
+LOAD_DISTANCE = 200      # Distance to load chunks
+UNLOAD_DISTANCE = 200

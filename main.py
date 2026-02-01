@@ -2,8 +2,9 @@
 import pygame
 import settings
 import graphics.visuals as visuals
-import world.chunk_management as chunk_management  # Your existing module
-from world.chunk_management import CHUNK_MANAGER, tile_to_world, CHUNK_SIZE # Specific imports
+from world.chunk_manager import CHUNK_MANAGER
+from world.utils import tile_to_world
+import settings # Ensure you use settings.CHUNK_SIZE if needed
 from generation.wind_engine import WindEngine
 
 def main():
@@ -70,7 +71,7 @@ def main():
         # 2. Draw Visuals (Presentation)
         if show_grid:
             # We pass the constants needed
-            visuals.draw_infinite_grid(display, camera_pos, CHUNK_SIZE)
+            visuals.draw_infinite_grid(display, camera_pos, settings.CHUNK_SIZE)
         
         if show_wind:
             # We pass the logic engine to the visualizer
