@@ -93,8 +93,8 @@ def main():
     key_map = {key: False for key in ("left", "right", "up", "down")}
 
     # Visibility Flags
-    show_wind = True
-    show_grid = True
+    show_wind = False
+    show_grid = False
     
     view_mode = "biomes" 
     
