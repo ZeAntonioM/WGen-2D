@@ -3,4 +3,3 @@ numpy >= 2.4.1
 scipy >= 1.16
 pygame >= 2.5
 matplotlib >= 3.10.8
-noise

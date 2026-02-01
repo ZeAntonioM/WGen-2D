@@ -14,7 +14,7 @@ def main():
 
     # --- INITIALIZATION ---
     # Instantiate the Logic Class
-    wind_engine = WindEngine(seed=settings.GLOBAL_SEED, scale=settings.WIND_SCALE)
+    wind_engine = WindEngine(seed=settings.WIND_SEED, scale=settings.WIND_SCALE)
     
     camera_pos = pygame.Vector2(0, 0)
     key_map = {key: False for key in ("left", "right", "up", "down")}

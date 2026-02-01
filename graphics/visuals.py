@@ -57,4 +57,4 @@ def draw_wind_arrows(surface, camera_pos, wind_engine, grid_spacing=64):
             end_y = screen_y + (vy / mag) * arrow_len
             
             pygame.draw.line(surface, settings.COLOR_WIND, (screen_x, screen_y), (end_x, end_y), 2)
-            pygame.draw.circle(surface, settings.COLOR_WIND, (int(screen_x), int(screen_y)), 2)
+            pygame.draw.circle(surface, settings.COLOR_WIND, (int(screen_x), int(screen_y)), 3)

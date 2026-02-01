@@ -67,3 +67,6 @@ WHITTAKER_RES_P = 512
 # 1.0 = Sharp borders (Minecraft style)
 # 20.0 = Soft blending (Realistic style)
 BIOME_SIGMA = 20.0
+
+WIND_SEED = 999
+WIND_SCALE = 2000.0 # Controls how "large" the wind patterns are
