@@ -62,6 +62,8 @@ class Chunk:
         
         # 4. Biomes
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+
+        # 5. Water level
         # for our generation, the water level is dependent only on the precipitation
         # (defines self.env_maps["water_cutoff"])
         self._adjust_water_cutoff()
