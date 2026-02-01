@@ -4,16 +4,16 @@ from pygame.math import Vector2
 import settings
 from world.utils import tile_to_world
 
-# Logic Imports
+
 from generation import noise_engine
 from generation.biome_placement import get_chunk_biome_map
 from generation.climate_engine import ClimateEngine
 from generation.wind_engine import WindEngine
 
-# Graphics Import
-import graphics.visuals as visuals  # <-- NEW IMPORT
 
-# ... (Noise Engine Initializations stay here) ...
+import graphics.visuals as visuals  
+
+
 ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
     seed=settings.ALTITUDE_NOISE_SEED,
     frequency=settings.ALTITUDE_NOISE_FREQUENCY,
@@ -42,10 +42,10 @@ class Chunk:
         
         self.is_loaded = False
         
-        # The Chunk OWNS the surface, but VISUALS paints it.
+
         self.surface = pygame.Surface(settings.CHUNK_SIZE)
         
-        # Initial Draw (Red/Unloaded state)
+
         self.update_graphics()
 
     def get_corner_points(self) -> list[Vector2]:
@@ -55,7 +55,6 @@ class Chunk:
         if self.is_loaded: return
         self._create_neighbors()
         
-        # 1. Generate Data
         self.env_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
         self._reshape_altitude()
         
@@ -67,7 +66,6 @@ class Chunk:
         
         self.is_loaded = True
         
-        # 2. Update Visuals
         self.update_graphics()
 
     def unload(self):
@@ -78,12 +76,10 @@ class Chunk:
     def position(self):
         return self.tile_pos
 
-    # --- NEW METHOD: DELEGATE TO VISUALS ---
     def update_graphics(self, mode="biomes"):
         """
         Asks the visuals module to repaint this chunk's surface.
         """
-        # We pass the raw data to the visualizer
         visuals.update_chunk_surface(
             surface=self.surface,
             env_maps=self.env_maps,
@@ -92,7 +88,6 @@ class Chunk:
         )
 
     def _create_neighbors(self):
-        # ... (Same as before) ...
         from world.chunk_manager import CHUNK_MANAGER
         for x in (-1, 0, 1):
             for y in (-1, 0, 1):
@@ -102,7 +97,6 @@ class Chunk:
                 self.neighbors[tile_pos] = CHUNK_MANAGER.chunks[tile_pos]
 
     def _reshape_altitude(self):
-        # ... (Same polynomial logic as before) ...
         n = 1001 
         x_lut = np.linspace(0.0, 1.0, n)
         y_lut = np.clip(
