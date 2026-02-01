@@ -33,6 +33,6 @@ STEP_SIZE = 3        # Bigger -> Faster, less precise
 CLIMATE_STEP = 4        # Bigger -> less detail, faster   
 
 # Physics
-MOISTURE_PICKUP = 1  # Moisture gain on water
-DECAY_ON_LAND = 0    # constant moisture cost on land
+MOISTURE_PICKUP = 0.9  # Moisture gain on water
+DECAY_ON_LAND = 0.05    # constant moisture cost on land
 MOUNTAIN_COST = 10       # Cost on moisture from passing throught a mountain
