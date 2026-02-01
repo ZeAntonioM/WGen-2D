@@ -1,4 +1,3 @@
-# generation/biome_placement.py
 
 """
 This file contains the biome placement and blending logic.
@@ -7,17 +6,15 @@ a function get_chunk_biome_map (at runtime).
 """
 
 import numpy as np
-# import pygame # Not strictly needed unless you use pygame types explicitly, but safe to remove if unused
 from enum import Enum
 from scipy.ndimage import distance_transform_edt
 
-# --- REFACTOR: Use settings instead of simulation_constants ---
 import settings 
 
 ### Constants
 
 # Biomes
-N_BIOMES = 9 # number
+N_BIOMES = 9 
 
 class Biome(Enum):
     TUNDRA = 0
@@ -31,15 +28,15 @@ class Biome(Enum):
     TROPICAL_RAINFOREST = 8
 
 BIOME_COLORS = np.array([
-    [0.80, 0.80, 0.90],  # Tundra
-    [0.40, 0.60, 0.20],  # Taiga
-    [0.80, 0.80, 0.30],  # Temperate grassland
-    [0.30, 0.70, 0.30],  # Temperate forest
-    [0.10, 0.50, 0.30],  # Temperate rainforest
-    [0.90, 0.80, 0.30],  # Subtropical desert
-    [0.70, 0.70, 0.20],  # Savanna
-    [0.20, 0.80, 0.30],  # Tropical seasonal forest
-    [0.10, 0.60, 0.10],  # Tropical rainforest
+    [0.95, 0.95, 1.00],  # Tundra (Almost White/Snow)
+    [0.05, 0.35, 0.25],  # Taiga (Dark Pine Green)
+    [0.60, 0.75, 0.30],  # Temperate Grassland (Vibrant Light Green)
+    [0.10, 0.60, 0.10],  # Temperate Forest (Standard Green)
+    [0.05, 0.45, 0.15],  # Temperate Rainforest (Deep lush Green)
+    [0.90, 0.85, 0.50],  # Subtropical Desert (Sand/Gold)
+    [0.70, 0.75, 0.20],  # Savanna (Dry Yellow-Green)
+    [0.30, 0.65, 0.10],  # Tropical Seasonal Forest (Bright Jungle Green)
+    [0.05, 0.35, 0.10],  # Tropical Rainforest (Very Dark/Dense Green)
 ], dtype=np.float32)
 
 assert(len(BIOME_COLORS) == N_BIOMES)
@@ -63,19 +60,18 @@ def _build_whittaker_biome_map() -> np.ndarray:
     T, P = np.meshgrid(t, p, indexing="ij")
 
     biome_map[:] = Biome.TEMPERATE_GRASSLAND.value
-    biome_map[T < 0.15] = Biome.TUNDRA.value
-    biome_map[(T < 0.3) & (P > 0.4)] = Biome.TAIGA.value
-    biome_map[(T > 0.3) & (T < 0.6) & (P > 0.4)] = Biome.TEMPERATE_FOREST.value
-    biome_map[(T > 0.3) & (T < 0.6) & (P > 0.7)] = Biome.TEMPERATE_RAINFOREST.value
-    biome_map[(T > 0.6) & (P < 0.25)] = Biome.SUBTROPICAL_DESERT.value
-    biome_map[(T > 0.6) & (P > 0.25) & (P < 0.55)] = Biome.SAVANNA.value
-    biome_map[(T > 0.6) & (P > 0.55) & (P < 0.8)] = Biome.TROPICAL_SEASONAL_FOREST.value
-    biome_map[(T > 0.6) & (P > 0.8)] = Biome.TROPICAL_RAINFOREST.value
+    biome_map[T < 0.25] = Biome.TUNDRA.value
+    biome_map[(T < 0.4) & (P > 0.3)] = Biome.TAIGA.value  
+    biome_map[(T >= 0.4) & (T < 0.7) & (P > 0.4)] = Biome.TEMPERATE_FOREST.value
+    biome_map[(T >= 0.4) & (T < 0.7) & (P > 0.7)] = Biome.TEMPERATE_RAINFOREST.value
+    biome_map[(T >= 0.7) & (P < 0.3)] = Biome.SUBTROPICAL_DESERT.value
+    biome_map[(T >= 0.7) & (P >= 0.3) & (P < 0.6)] = Biome.SAVANNA.value
+    biome_map[(T >= 0.7) & (P >= 0.6) & (P < 0.8)] = Biome.TROPICAL_SEASONAL_FOREST.value
+    biome_map[(T >= 0.7) & (P >= 0.8)] = Biome.TROPICAL_RAINFOREST.value
 
     return biome_map
 
 
-### Setup LUT
 
 def _build_biome_weight_lut(biome_map: np.ndarray) -> np.ndarray:
     """

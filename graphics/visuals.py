@@ -13,7 +13,6 @@ def draw_infinite_grid(surface, camera_pos, chunk_size):
     step_x = int(chunk_size.x)
     step_y = int(chunk_size.y)
     
-    # Snap to the nearest grid line
     start_x = view_left - (view_left % step_x)
     start_y = view_top - (view_top % step_y)
     
@@ -44,7 +43,6 @@ def draw_wind_arrows(surface, camera_pos, wind_engine, grid_spacing=64):
     for x in range(start_x, view_left + screen_w + grid_spacing, grid_spacing):
         for y in range(start_y, view_top + screen_h + grid_spacing, grid_spacing):
             
-            # Use the engine passed in the arguments
             vx, vy = wind_engine.get_wind_at(x, y)
             
             screen_x = x - view_left
@@ -65,60 +63,51 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
     """
     Paint the pixels of a chunk surface based on its data.
     """
-    # 1. Unloaded State
+ 
     if not is_loaded:
-        surface.fill((60, 40, 40)) # Dark Red placeholder
+        surface.fill((60, 40, 40)) 
         return
 
-    # 2. Get Data
+
     alt = env_maps["altitude"]
     temp = env_maps["temperature"]
     precip = env_maps["precipitation"]
 
-    # 3. Handle Modes
-    
-    # MODE: ALTITUDE (Grayscale)
+    # Debug modes
     if mode == "altitude":
         c = (alt * 255).astype(np.uint8)
         rgb = np.dstack((c, c, c))
         pygame.surfarray.blit_array(surface, rgb)
         return
 
-    # MODE: TEMPERATURE (Red/Blue Heatmap)
+  
     if mode == "temperature":
         c = (temp * 255).astype(np.uint8)
-        # Red = Hot, Blue = Cold
         rgb = np.dstack((c, np.zeros_like(c), 255 - c))
         pygame.surfarray.blit_array(surface, rgb)
         return
 
-    # MODE: PRECIPITATION (Blue Scale)
+ 
     if mode == "precipitation":
         c = (precip * 255).astype(np.uint8)
-        # Cyan/Blue color
         rgb = np.dstack((np.zeros_like(c), c, c))
         pygame.surfarray.blit_array(surface, rgb)
         return
 
-    # MODE: BIOMES (Standard View)
+  
     if mode == "biomes":
         WATER_LEVEL = settings.SEA_LEVEL
         WATER_COLOR = [0.0, 0.1, 0.3]
         
         water_mask = alt <= WATER_LEVEL
         
-        # Get base biome colors
         biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
-        
-        # Apply Water Color
-        # We divide by WATER_LEVEL to normalize brightness relative to depth if desired,
-        # or just set it flat.
+ 
         biome_colors[water_mask] = np.array(WATER_COLOR) / WATER_LEVEL
         
-        # Apply Altitude Shadows (Brightness)
-        colors = biome_colors * alt[:, :, np.newaxis]
+        brightness = 0.1 + (alt * 0.9)
+        colors = biome_colors * brightness[:, :, np.newaxis]
         
-        # Blit to Pygame Surface
         pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
         pygame.surfarray.blit_array(surface, pygame_colors)
         return

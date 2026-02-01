@@ -89,6 +89,6 @@ STEP_SIZE = 10.0        # How many pixels is one step (larger = faster, less acc
 
 # Physics
 MOISTURE_PICKUP = 0.15  # How much water wind picks up per step over Ocean
-DECAY_ON_LAND = 0.02    # How much water wind loses per step over Land (Continental dryness)
-MOUNTAIN_COST = 0.5
+DECAY_ON_LAND = 0.05    # How much water wind loses per step over Land (Continental dryness)
+MOUNTAIN_COST = 5
 CLIMATE_STEP = 4
