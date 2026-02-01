@@ -1,5 +1,5 @@
 import pygame
-from noise_engine import *
+from generation.noise_engine import *
 import numpy as np
 
 
