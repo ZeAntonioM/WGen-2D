@@ -79,3 +79,16 @@ SEA_LEVEL = 0.2
 # Climate Physics
 BASE_TEMP = 25.0        # Average global temperature
 TEMP_LAPSE_RATE = 20.0  # Temperature drop per unit of altitude
+
+# --- CLIMATE SIMULATION ---
+# Controls how moisture travels across the map
+
+# Trace Parameters
+MAX_STEPS = 80          # How many "steps" back the wind traces (10 steps = 400 pixels look-back)
+STEP_SIZE = 10.0        # How many pixels is one step (larger = faster, less accurate)
+
+# Physics
+MOISTURE_PICKUP = 0.15  # How much water wind picks up per step over Ocean
+DECAY_ON_LAND = 0.02    # How much water wind loses per step over Land (Continental dryness)
+MOUNTAIN_COST = 0.5
+CLIMATE_STEP = 4
