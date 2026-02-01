@@ -36,3 +36,13 @@ CLIMATE_STEP = 4        # Bigger -> less detail, faster
 MOISTURE_PICKUP = 0.05  # Moisture gain on water
 DECAY_ON_LAND = 0.02    # constant moisture cost on land
 MOUNTAIN_COST = 1       # Cost on moisture from passing throught a mountain
+=======
+MAX_STEPS = 80          # Bigger -> more precise, slower
+STEP_SIZE = 4        # Bigger -> Faster, less precise
+CLIMATE_STEP = 4        # Bigger -> less detail, faster   
+
+# Physics
+MOISTURE_PICKUP = 1  # Moisture gain on water
+DECAY_ON_LAND = 0    # constant moisture cost on land
+MOUNTAIN_COST = 10       # Cost on moisture from passing throught a mountain
+>>>>>>> Stashed changes
