@@ -1,17 +1,16 @@
-# world/chunk.py
 import pygame
 import numpy as np
 from pygame.math import Vector2
-
 import settings
 from world.utils import tile_to_world
 
-# Imports from your generation package
 from generation import noise_engine
-from generation.biome_placement import get_chunk_biome_map, biome_vectors_to_rgb
+from generation.biome_placement import get_chunk_biome_map
+from generation.climate_engine import ClimateEngine
+from generation.wind_engine import WindEngine
 
-# --- INITIALIZE NOISE ENGINES ---
-# We create these once so we don't re-init them for every chunk
+import graphics.visuals as visuals  
+
 ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
     seed=settings.ALTITUDE_NOISE_SEED,
     frequency=settings.ALTITUDE_NOISE_FREQUENCY,
@@ -22,23 +21,25 @@ TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(
     frequency=settings.TEMPERATURE_NOISE_FREQUENCY,
     fractal_octaves=settings.TEMPERATURE_NOISE_OCTAVES
 )
+WIND_ENGINE = WindEngine(seed=settings.GLOBAL_SEED, scale=settings.WIND_SCALE)
+CLIMATE_ENGINE = ClimateEngine(ALTITUDE_NOISE_ENGINE, WIND_ENGINE)
 
 class Chunk:
     def __init__(self, tile_pos: Vector2):
         self.tile_pos = tile_pos
         self.neighbors = dict()
         
-        # New Environment Map storage
         self.env_maps = {
             "altitude": None,
             "temperature": None,
             "precipitation": None,
-            "biomes": None
+            "biomes": None,
+            "water_cutoff": None 
         }
         
         self.is_loaded = False
         self.surface = pygame.Surface(settings.CHUNK_SIZE)
-        self._draw_surface()
+        self.update_graphics()
 
     def get_corner_points(self) -> list[Vector2]:
         return [tile_to_world(self.tile_pos + Vector2(i, j)) for i, j in ((0, 0), (0, 1), (1, 0), (1, 1))]
@@ -47,29 +48,19 @@ class Chunk:
         if self.is_loaded: return
         self._create_neighbors()
         
-        # 1. Generate Altitude
-        # Note: We assume noise_engine.get_noise_height_map returns a numpy array
         self.env_maps["altitude"] = ALTITUDE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
-        self._reshape_altitude() # Apply the polynomial curve
+        self._reshape_altitude()
         
-        # 2. Generate Temperature
         self.env_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
         
-        # 3. Calculate Derived Maps
-        # TODO: Implement Wind-based precipitation here later!
-        # For now, we just copy temperature as placeholder or use zeros
-        self.env_maps["precipitation"] = self.env_maps["temperature"] 
+        self.env_maps["precipitation"] = CLIMATE_ENGINE.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
         
-        # 4. Biomes
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
 
-        # 5. Water level
-        # for our generation, the water level is dependent only on the precipitation
-        # (defines self.env_maps["water_cutoff"])
         self._adjust_water_cutoff()
         
         self.is_loaded = True
-        self._draw_surface()
+        self.update_graphics()
 
     def unload(self):
         self.neighbors.clear()
@@ -79,75 +70,40 @@ class Chunk:
     def position(self):
         return self.tile_pos
 
-    def _draw_surface(self):
-        """ 
-        Visualizes the state of the chunk.
-        If unloaded -> Red
-        If loaded -> Biome Colors + Altitude Brightness
+    def update_graphics(self, mode="biomes"):
         """
-        if not self.is_loaded:
-            self.surface.fill((60, 40, 40))
-            return
-        
-        a = self.env_maps["altitude"]
-        water_cutoff = self.env_maps["water_cutoff"]
-        WATER_COLOR = np.array([0.0, 0.1, 0.3], dtype=np.float32)
-        
-        # Identify water pixels
-        water_mask = a <= water_cutoff
-
-        # Base colors from Biome Map
-        biome_colors = biome_vectors_to_rgb(self.env_maps["biomes"])
-        
-        # Override water color
-        # We divide by water cutoff to make water's color independent from the water cutoff
-        safe_cutoff = np.maximum(water_cutoff, 1e-4) # don't divide by 0
-        biome_colors[water_mask] = (WATER_COLOR / safe_cutoff[water_mask, None])
-
-        # Apply Altitude as brightness (Shadows/Highlights)
-        # a[:, :, np.newaxis] adds a 3rd dimension so we can multiply RGB
-        colors = biome_colors * a[:, :, np.newaxis]
-
-        # Convert to Pygame format (0-255 uint8)
-        pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
-        pygame.surfarray.blit_array(self.surface, pygame_colors)
+        Asks the visuals module to repaint this chunk's surface.
+        """
+        visuals.update_chunk_surface(
+            surface=self.surface,
+            env_maps=self.env_maps,
+            is_loaded=self.is_loaded,
+            mode=mode
+        )
 
     def _create_neighbors(self):
-        # Local import to prevent circular dependency
         from world.chunk_manager import CHUNK_MANAGER
-        
         for x in (-1, 0, 1):
             for y in (-1, 0, 1):
                 tile_pos = (self.position.x + x, self.position.y + y)
-                if tile_pos in self.neighbors:
-                    continue
+                if tile_pos in self.neighbors: continue
                 CHUNK_MANAGER.create_chunk(Vector2(*tile_pos))
                 self.neighbors[tile_pos] = CHUNK_MANAGER.chunks[tile_pos]
 
     def _reshape_altitude(self):
-        """ 
-        Applies a polynomial function to make peaks peakier and plateaus flatter.
-        """
         n = 1001 
         x_lut = np.linspace(0.0, 1.0, n)
         y_lut = np.clip(
-            - 0.0016371863
-            - 2.219893 * x_lut
-            + 23.44919786 * x_lut**2
-            - 67.458179075828 * x_lut**3
-            + 81.07774578363 * x_lut**4
-            - 33.86123680241 * x_lut**5,
-            0, 1
+            - 0.0016371863 - 2.219893 * x_lut + 23.44919786 * x_lut**2
+            - 67.458179075828 * x_lut**3 + 81.07774578363 * x_lut**4
+            - 33.86123680241 * x_lut**5, 0, 1
         )
-        
-        # Apply LUT using interpolation
-        self.env_maps["altitude"] = np.interp(
-            self.env_maps["altitude"], x_lut, y_lut
-        )
-        
+        self.env_maps["altitude"] = np.interp(self.env_maps["altitude"], x_lut, y_lut)
+
     def _adjust_water_cutoff(self):
         """ 
         Applies a polynomial function to set the water_cutoff env_map, depending on the precipitation.
+        (Friend's New Method)
         """
         n = 1001 
         x_lut = np.linspace(0.0, 1.0, n)
