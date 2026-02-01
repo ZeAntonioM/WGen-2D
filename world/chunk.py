@@ -62,6 +62,11 @@ class Chunk:
         
         # 4. Biomes
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+
+        # 5. Water level
+        # for our generation, the water level is dependent only on the precipitation
+        # (defines self.env_maps["water_cutoff"])
+        self._adjust_water_cutoff()
         
         self.is_loaded = True
         self._draw_surface()
@@ -85,18 +90,19 @@ class Chunk:
             return
         
         a = self.env_maps["altitude"]
-        WATER_LEVEL = 0.2 
-        WATER_COLOR = [0.0, 0.1, 0.3]
+        water_cutoff = self.env_maps["water_cutoff"]
+        WATER_COLOR = np.array([0.0, 0.1, 0.3], dtype=np.float32)
         
         # Identify water pixels
-        water_mask = a <= WATER_LEVEL
+        water_mask = a <= water_cutoff
 
         # Base colors from Biome Map
         biome_colors = biome_vectors_to_rgb(self.env_maps["biomes"])
         
         # Override water color
-        # We divide by WATER_LEVEL to normalize brightness slightly
-        biome_colors[water_mask] = np.array(WATER_COLOR) / WATER_LEVEL
+        # We divide by water cutoff to make water's color independent from the water cutoff
+        safe_cutoff = np.maximum(water_cutoff, 1e-4) # don't divide by 0
+        biome_colors[water_mask] = (WATER_COLOR / safe_cutoff[water_mask, None])
 
         # Apply Altitude as brightness (Shadows/Highlights)
         # a[:, :, np.newaxis] adds a 3rd dimension so we can multiply RGB
@@ -124,8 +130,6 @@ class Chunk:
         """
         n = 1001 
         x_lut = np.linspace(0.0, 1.0, n)
-        
-        # The Magic Polynomial from the other developer
         y_lut = np.clip(
             - 0.0016371863
             - 2.219893 * x_lut
@@ -139,4 +143,23 @@ class Chunk:
         # Apply LUT using interpolation
         self.env_maps["altitude"] = np.interp(
             self.env_maps["altitude"], x_lut, y_lut
+        )
+        
+    def _adjust_water_cutoff(self):
+        """ 
+        Applies a polynomial function to set the water_cutoff env_map, depending on the precipitation.
+        """
+        n = 1001 
+        x_lut = np.linspace(0.0, 1.0, n)
+        y_lut = np.clip(
+            -0.24738095238096944*x_lut
+            +3.063214285714324*x_lut**2
+            -4.527976190476227*x_lut**3
+            +1.9821428571428705*x_lut**4,
+            0, 1
+        )
+        
+        # Apply LUT using interpolation
+        self.env_maps["water_cutoff"] = np.interp(
+            self.env_maps["precipitation"], x_lut, y_lut
         )
