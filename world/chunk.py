@@ -4,15 +4,12 @@ from pygame.math import Vector2
 import settings
 from world.utils import tile_to_world
 
-
 from generation import noise_engine
 from generation.biome_placement import get_chunk_biome_map
 from generation.climate_engine import ClimateEngine
 from generation.wind_engine import WindEngine
 
-
 import graphics.visuals as visuals  
-
 
 ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
     seed=settings.ALTITUDE_NOISE_SEED,
@@ -27,7 +24,6 @@ TEMPERATURE_NOISE_ENGINE = noise_engine.NoiseEngine(
 WIND_ENGINE = WindEngine(seed=settings.GLOBAL_SEED, scale=settings.WIND_SCALE)
 CLIMATE_ENGINE = ClimateEngine(ALTITUDE_NOISE_ENGINE, WIND_ENGINE)
 
-
 class Chunk:
     def __init__(self, tile_pos: Vector2):
         self.tile_pos = tile_pos
@@ -37,15 +33,12 @@ class Chunk:
             "altitude": None,
             "temperature": None,
             "precipitation": None,
-            "biomes": None
+            "biomes": None,
+            "water_cutoff": None 
         }
         
         self.is_loaded = False
-        
-
         self.surface = pygame.Surface(settings.CHUNK_SIZE)
-        
-
         self.update_graphics()
 
     def get_corner_points(self) -> list[Vector2]:
@@ -63,9 +56,10 @@ class Chunk:
         self.env_maps["precipitation"] = CLIMATE_ENGINE.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
         
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+
+        self._adjust_water_cutoff()
         
         self.is_loaded = True
-        
         self.update_graphics()
 
     def unload(self):
@@ -105,3 +99,23 @@ class Chunk:
             - 33.86123680241 * x_lut**5, 0, 1
         )
         self.env_maps["altitude"] = np.interp(self.env_maps["altitude"], x_lut, y_lut)
+
+    def _adjust_water_cutoff(self):
+        """ 
+        Applies a polynomial function to set the water_cutoff env_map, depending on the precipitation.
+        (Friend's New Method)
+        """
+        n = 1001 
+        x_lut = np.linspace(0.0, 1.0, n)
+        y_lut = np.clip(
+            -0.24738095238096944*x_lut
+            +3.063214285714324*x_lut**2
+            -4.527976190476227*x_lut**3
+            +1.9821428571428705*x_lut**4,
+            0, 1
+        )
+        
+        # Apply LUT using interpolation
+        self.env_maps["water_cutoff"] = np.interp(
+            self.env_maps["precipitation"], x_lut, y_lut
+        )

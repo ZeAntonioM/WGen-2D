@@ -73,6 +73,11 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
     temp = env_maps["temperature"]
     precip = env_maps["precipitation"]
 
+    if "water_cutoff" in env_maps and env_maps["water_cutoff"] is not None:
+        water_cutoff = env_maps["water_cutoff"]
+    else:
+        water_cutoff = np.full_like(alt, settings.SEA_LEVEL)
+
     # Debug modes
     if mode == "altitude":
         c = (alt * 255).astype(np.uint8)
@@ -96,16 +101,16 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
 
   
     if mode == "biomes":
-        WATER_LEVEL = settings.SEA_LEVEL
-        WATER_COLOR = [0.0, 0.1, 0.3]
-        
-        water_mask = alt <= WATER_LEVEL
-        
+        WATER_COLOR = np.array([0.0, 0.1, 0.3], dtype=np.float32)
+        water_mask = alt <= water_cutoff
         biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
- 
-        biome_colors[water_mask] = np.array(WATER_COLOR) / WATER_LEVEL
         
-        brightness = 0.1 + (alt * 0.9)
+        safe_cutoff = np.maximum(water_cutoff, 1e-4)
+        biome_colors[water_mask] = (WATER_COLOR / safe_cutoff[water_mask, None])
+        
+        brightness = alt.copy()
+        brightness[~water_mask] = 0.2 + (alt[~water_mask] * 0.8)
+        brightness[water_mask] = alt[water_mask]
         colors = biome_colors * brightness[:, :, np.newaxis]
         
         pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
