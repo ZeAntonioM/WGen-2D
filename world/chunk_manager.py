@@ -50,5 +50,5 @@ class ChunkManager:
                 self._chunks[tuple(p)] = c = Chunk(p)
             c.load()
 
-# Create the Singleton Instance here
+# Singleton Instance
 CHUNK_MANAGER = ChunkManager()
