@@ -25,7 +25,5 @@ class WindEngine:
         nx = self.noise_x.get_noise_at(x, y)
         ny = self.noise_y.get_noise_at(x, y)
         
-        angle = np.arctan2(ny, nx) 
-        magnitude = np.sqrt(nx**2 + ny**2)
         
-        return angle, magnitude 
+        return nx, ny 
