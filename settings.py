@@ -1,4 +1,4 @@
-# settings.py
+
 import pygame
 import warnings
 

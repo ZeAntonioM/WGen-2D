@@ -11,10 +11,6 @@ def main():
     display = pygame.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
-    # --- INITIALIZATION ---
-    # Instantiate the Logic Class
-    # Ensure settings.WIND_SEED and settings.WIND_SCALE exist in your settings.py
-    # or use settings.GLOBAL_SEED and hardcoded scale if preferred
     wind_engine = WindEngine(seed=settings.WIND_SEED, scale=settings.WIND_SCALE)
     
     camera_pos = pygame.Vector2(0, 0)
@@ -24,8 +20,6 @@ def main():
     show_wind = True
     show_grid = True
     
-    # View Mode (State machine for what the chunks look like)
-    # Options: "biomes", "altitude", "temperature", "precipitation"
     view_mode = "biomes" 
     
     running = True
@@ -52,12 +46,10 @@ def main():
                 if event.key == pygame.K_3: new_mode = "temperature"
                 if event.key == pygame.K_4: new_mode = "precipitation"
                 
-                # If we switched modes, update all chunks immediately
                 if new_mode and new_mode != view_mode:
                     view_mode = new_mode
                     print(f"Switching view to: {view_mode}")
                     for chunk in CHUNK_MANAGER.chunks.values():
-                        # We call the new method we defined in world/chunk.py
                         chunk.update_graphics(view_mode)
 
             elif event.type == pygame.KEYUP:
@@ -76,13 +68,8 @@ def main():
         # Update Content (Loads/Unloads chunks)
         CHUNK_MANAGER.update(camera_pos)
 
-        # Note: Newly loaded chunks default to "biomes". 
-        # If you are in a debug mode, you might see mixed chunks until you move or press the key.
-        # To fix this perfectly, we'd pass 'view_mode' to the ChunkManager, 
-        # but for now, we can just enforce it on visible chunks roughly:
         if view_mode != "biomes":
              for chunk in CHUNK_MANAGER.chunks.values():
-                 # Ideally, check if it needs updating to save performance
                  chunk.update_graphics(view_mode)
 
         # --- DRAW ---
@@ -102,7 +89,6 @@ def main():
             visuals.draw_infinite_grid(display, camera_pos, settings.CHUNK_SIZE)
         
         if show_wind:
-            # We pass the wind engine so we can draw arrows
             visuals.draw_wind_arrows(display, camera_pos, wind_engine)
         
         # 3. Draw Player

@@ -1,7 +1,6 @@
-# generation/climate_engine.py
 import numpy as np
 import math
-import scipy.ndimage # <--- NEW IMPORT
+import scipy.ndimage
 import settings
 
 class ClimateEngine:
