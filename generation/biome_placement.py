@@ -28,7 +28,7 @@ class Biome(Enum):
     TROPICAL_RAINFOREST = 8
 
 BIOME_COLORS = np.array([
-    [0.95, 0.95, 1.00],  # Tundra (Almost White/Snow)
+    [1.00, 1.00, 1.00],  # Tundra (Almost White/Snow)
     [0.05, 0.35, 0.25],  # Taiga (Dark Pine Green)
     [0.60, 0.75, 0.30],  # Temperate Grassland (Vibrant Light Green)
     [0.10, 0.60, 0.10],  # Temperate Forest (Standard Green)
@@ -61,7 +61,7 @@ def _build_whittaker_biome_map() -> np.ndarray:
 
     biome_map[:] = Biome.TEMPERATE_GRASSLAND.value
     biome_map[T < 0.25] = Biome.TUNDRA.value
-    biome_map[(T < 0.4) & (P > 0.3)] = Biome.TAIGA.value  
+    biome_map[(T >= 0.25) &(T < 0.4) & (P > 0.3)] = Biome.TAIGA.value  
     biome_map[(T >= 0.4) & (T < 0.7) & (P > 0.4)] = Biome.TEMPERATE_FOREST.value
     biome_map[(T >= 0.4) & (T < 0.7) & (P > 0.7)] = Biome.TEMPERATE_RAINFOREST.value
     biome_map[(T >= 0.7) & (P < 0.3)] = Biome.SUBTROPICAL_DESERT.value
