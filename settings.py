@@ -55,3 +55,15 @@ if not CHUNK_SIZE.x.is_integer() or not CHUNK_SIZE.y.is_integer():
 # 3. Square Chunk Warning
 if CHUNK_SIZE.x != CHUNK_SIZE.y:
     warnings.warn("Non-square chunk sizes are not fully tested and may break logic.")
+
+
+# --- BIOME SIMULATION ---
+# Resolution of the Whittaker diagram LUT (Look Up Table)
+# Higher = smoother gradients but slightly more memory usage (512x512 is standard)
+WHITTAKER_RES_T = 512
+WHITTAKER_RES_P = 512
+
+# Softness of biome transitions (in LUT pixels)
+# 1.0 = Sharp borders (Minecraft style)
+# 20.0 = Soft blending (Realistic style)
+BIOME_SIGMA = 20.0
