@@ -1,4 +1,3 @@
-# generation/object_engine.py
 import numpy as np
 import settings
 from generation.biome_placement import Biome
@@ -20,9 +19,6 @@ class ObjectEngine:
         self.global_seed = global_seed
         
     def generate_object_map(self, chunk_x, chunk_y, biome_data):
-        """
-        Returns a 32x32 array of integers representing objects.
-        """
         cx = int(settings.CHUNK_SIZE.x)
         cy = int(settings.CHUNK_SIZE.y)
         
@@ -32,64 +28,52 @@ class ObjectEngine:
         chunk_seed = (self.global_seed ^ (ix * 73856093)) ^ (iy * 19349663)
         rng = np.random.default_rng(abs(chunk_seed))
         
-        if biome_data.ndim == 3:
-            biome_map = np.argmax(biome_data, axis=2)
-        else:
-            biome_map = biome_data
-
-
         chance_map = rng.random((cx, cy), dtype=np.float32)
         object_map = np.zeros((cx, cy), dtype=np.uint8)
-        
-        # --- RULES---
+
+        def get_weight(biome_enum):
+            if biome_data.ndim == 3:
+                return biome_data[:, :, biome_enum.value]
+            else:
+                return (biome_data == biome_enum.value).astype(np.float32)
         
         # Rule 1: Temperate Forests 
-        mask_forest = (biome_map == Biome.TEMPERATE_FOREST.value)
-        object_map[mask_forest & (chance_map < 0.10)] = WorldObject.TREE
+        w_forest = get_weight(Biome.TEMPERATE_FOREST)
+        object_map[chance_map < (0.10 * w_forest)] = WorldObject.TREE
         
         # Rule 2: Rainforests 
-        mask_rainforest = (biome_map == Biome.TEMPERATE_RAINFOREST.value) | \
-                          (biome_map == Biome.TROPICAL_RAINFOREST.value)
-        object_map[mask_rainforest & (chance_map < 0.20)] = WorldObject.TREE
+        w_rainforest = get_weight(Biome.TEMPERATE_RAINFOREST) + \
+                       get_weight(Biome.TROPICAL_RAINFOREST)
+        object_map[chance_map < (0.20 * w_rainforest)] = WorldObject.TREE
         
-        # Rule 3: Deserts 
-        mask_desert = (biome_map == Biome.SUBTROPICAL_DESERT.value)
-        object_map[mask_desert & (chance_map < 0.02)] = WorldObject.CACTUS
+        # Rule 3: Deserts (Cactus)
+        w_desert = get_weight(Biome.SUBTROPICAL_DESERT)
+        object_map[chance_map < (0.02 * w_desert)] = WorldObject.CACTUS
         
-        # Rule 4: Tropical 
-        mask_tropical = (biome_map == Biome.TROPICAL_SEASONAL_FOREST.value)
-        object_map[mask_tropical & (chance_map < 0.05)] = WorldObject.PALM
+        # Rule 4: Tropical (Palms)
+        w_tropical = get_weight(Biome.TROPICAL_SEASONAL_FOREST)
+        object_map[chance_map < (0.05 * w_tropical)] = WorldObject.PALM
 
-        # Rule 5: Taiga 
-        mask_taiga = (biome_map == Biome.TAIGA.value)
-        object_map[mask_taiga & (chance_map < 0.10)] = WorldObject.SNOW_TREE
+        # Rule 5: Taiga (Snow Trees)
+        w_taiga = get_weight(Biome.TAIGA)
+        object_map[chance_map < (0.10 * w_taiga)] = WorldObject.SNOW_TREE
 
         # Rule 6: Rocks in High Mountains
-        mask_tundra = (biome_map == Biome.TUNDRA.value)
-        
-        object_map[mask_tundra & (chance_map < 0.04)] = WorldObject.ROCK
-
-
+        w_tundra = get_weight(Biome.TUNDRA)
+        object_map[chance_map < (0.04 * w_tundra)] = WorldObject.ROCK
 
         # Rule 7: Wildflowers in Temperate Grassland
-        mask_grassland = (biome_map == Biome.TEMPERATE_GRASSLAND.value)
-        object_map[mask_grassland & (chance_map < 0.01)] = WorldObject.FLOWER
+        w_grassland = get_weight(Biome.TEMPERATE_GRASSLAND)
+        object_map[chance_map < (0.005 * w_grassland)] = WorldObject.FLOWER
 
-        # Rule 8: Dead Bushes in Desert 
-        mask_desert = (biome_map == Biome.SUBTROPICAL_DESERT.value)
-        object_map[mask_desert & (chance_map > 0.98)] = WorldObject.DEAD_BUSH
-        mask_desert = (biome_map == Biome.SUBTROPICAL_DESERT.value)
-        object_map[mask_desert & (chance_map > 0.99)] = WorldObject.ROCK
-
+        # Rule 8: Dead Bushes and Rocks in Desert 
+        object_map[chance_map > (1.0 - (0.02 * w_desert))] = WorldObject.DEAD_BUSH
+        object_map[chance_map > (1.0 - (0.01 * w_desert))] = WorldObject.ROCK
 
         # Rule 9: Mushrooms in Rainforests 
-        mask_jungle = (biome_map == Biome.TROPICAL_RAINFOREST.value) | \
-                      (biome_map == Biome.TEMPERATE_RAINFOREST.value)
-
-        object_map[mask_jungle & (chance_map > 0.99)] = WorldObject.MUSHROOM
+        object_map[chance_map > (1.0 - (0.01 * w_rainforest))] = WorldObject.MUSHROOM
 
         # Rule 10: Berry Bushes in Taiga 
-        mask_taiga = (biome_map == Biome.TAIGA.value)
-        object_map[mask_taiga & (chance_map > 0.90)] = WorldObject.BERRY_BUSH
+        object_map[chance_map > (1.0 - (0.10 * w_taiga))] = WorldObject.BERRY_BUSH
         
         return object_map
