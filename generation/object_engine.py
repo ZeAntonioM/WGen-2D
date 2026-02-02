@@ -12,6 +12,8 @@ class WorldObject:
     SNOW_TREE = 5
     FLOWER = 6
     DEAD_BUSH = 7
+    MUSHROOM = 8
+    BERRY_BUSH = 9
 
 class ObjectEngine:
     def __init__(self, global_seed):
@@ -78,5 +80,16 @@ class ObjectEngine:
         object_map[mask_desert & (chance_map > 0.98)] = WorldObject.DEAD_BUSH
         mask_desert = (biome_map == Biome.SUBTROPICAL_DESERT.value)
         object_map[mask_desert & (chance_map > 0.99)] = WorldObject.ROCK
+
+
+        # Rule 9: Mushrooms in Rainforests 
+        mask_jungle = (biome_map == Biome.TROPICAL_RAINFOREST.value) | \
+                      (biome_map == Biome.TEMPERATE_RAINFOREST.value)
+
+        object_map[mask_jungle & (chance_map > 0.99)] = WorldObject.MUSHROOM
+
+        # Rule 10: Berry Bushes in Taiga 
+        mask_taiga = (biome_map == Biome.TAIGA.value)
+        object_map[mask_taiga & (chance_map > 0.90)] = WorldObject.BERRY_BUSH
         
         return object_map

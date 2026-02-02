@@ -154,6 +154,14 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
                 elif obj_type == WorldObject.DEAD_BUSH:
                     color = (100, 80, 50)    # Dry Brown
                     radius = 1
+
+                elif obj_type == WorldObject.MUSHROOM:
+                    color = (200, 50, 50)    # Bright Red
+                    radius = 2               
+                
+                elif obj_type == WorldObject.BERRY_BUSH:
+                    color = (50, 100, 180)    # Blue-Green bush
+                    radius = 1
                 
                 if color:
                     pygame.draw.circle(surface, color, (x, y), radius)
