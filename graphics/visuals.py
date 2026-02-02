@@ -145,10 +145,17 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
 
                 elif obj_type == WorldObject.ROCK:
                     color = (100, 100, 110)  # Slate Grey
-                    radius = 2               # Small, distinct dots
+                    radius = 2
+
+                elif obj_type == WorldObject.FLOWER:
+                    color = (255, 200, 0)
+                    radius = 1               
+            
+                elif obj_type == WorldObject.DEAD_BUSH:
+                    color = (100, 80, 50)    # Dry Brown
+                    radius = 1
                 
                 if color:
-                    # Draw directly onto the chunk surface
                     pygame.draw.circle(surface, color, (x, y), radius)
 
         return
