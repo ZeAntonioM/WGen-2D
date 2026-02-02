@@ -10,5 +10,5 @@ COLOR_WIND = (255, 100, 100)
 COLOR_PLAYER = (0, 0, 255)
 
 # --- CHUNK LOADING ---
-LOAD_DISTANCE = 200     # chunks inside this distance get loaded
-UNLOAD_DISTANCE = 310   # chunks outside this distance get unloaded
+LOAD_DISTANCE = 400     # chunks inside this distance get loaded
+UNLOAD_DISTANCE = 610   # chunks outside this distance get unloaded
