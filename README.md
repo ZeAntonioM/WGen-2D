@@ -8,6 +8,7 @@
 
 - [Project Overview](#project-overview)
 - [How It Works](#how-it-works)
+- [Usage](#usage)
 - [Technologies Used](#technologies-used)
 - [The Team](#the-team)
 
@@ -34,6 +35,30 @@ The result is a world where deserts form naturally behind mountains, forests gro
 3.  **Climate Engine:** We use a "Reverse Trace" algorithm. For every pixel, we trace the wind backward. If it comes from the ocean, it brings rain. If it hits a mountain, it creates a **Rain Shadow** (Desert).
 4.  **Biology:** We use a Whittaker Diagram to combine Temperature and Precipitation to select the correct Biome.
 5.  **Object Placement:** A deterministic hashing system places trees, rocks, and flowers, ensuring that the infinite world is always consistent, even when revisited.
+
+# Usage
+
+### Prerequisites
+You need Python installed on your machine.
+Then, install the required libraries:
+
+```bash
+pip install requirements.txt
+``` 
+### Running the Simulation
+
+```bash
+python main.py
+``` 
+
+### Controls
+
+Once the simulation is running, you can use the following keys:
+
+- Arrows: Move the camera around the infinite world.
+- 1, 2, 3, 4: Switch Map Views (Biomes, Altitude, Temperature, Precipitation).
+- W: Toggle Wind Vectors (Debug View).
+- C: Toggle Chunk Grid (Debug View).
 
 ## Technologies Used
 
