@@ -168,3 +168,49 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
 
         return
     
+
+def draw_controls_hud(surface):
+    """
+    Draws a simple UI overlay showing available controls.
+    """
+    font = pygame.font.SysFont("monospace", 16, bold=True)
+    
+    controls = [
+        ("1", "Biome Map"),
+        ("2", "Altitude Map"),
+        ("3", "Temperature Map"),
+        ("4", "Precipitation Map"),
+        ("W", "Toggle Wind View"),
+        ("C", "Toggle Chunk Grid"), 
+        ("ESC", "Quit"),
+    ]
+
+    screen_w = surface.get_width()
+    
+ 
+    x_pos = screen_w - 250 
+    y_pos = 10
+    line_height = 20
+    
+
+    panel_rect = (x_pos - 10, y_pos - 5, 250, len(controls) * line_height + 10)
+    
+ 
+    s = pygame.Surface((panel_rect[2], panel_rect[3]))
+    s.set_alpha(180) 
+    s.fill((0, 0, 0))
+    surface.blit(s, (panel_rect[0], panel_rect[1]))
+
+  
+    for key, desc in controls:
+    
+        key_text = font.render(f"[{key}]", True, (255, 255, 0))
+        
+  
+        desc_text = font.render(f" {desc}", True, (255, 255, 255))
+        
+        surface.blit(key_text, (x_pos, y_pos))
+        surface.blit(desc_text, (x_pos + 50, y_pos))
+        
+        y_pos += line_height
+    
