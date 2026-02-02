@@ -1,7 +1,8 @@
-# visuals.py
 import pygame
 import math
-import settings  # Access to constants
+import settings 
+import numpy as np
+from generation.biome_placement import biome_vectors_to_rgb
 
 def draw_infinite_grid(surface, camera_pos, chunk_size):
     """ Draws grid lines aligned with chunk boundaries. """
@@ -12,7 +13,6 @@ def draw_infinite_grid(surface, camera_pos, chunk_size):
     step_x = int(chunk_size.x)
     step_y = int(chunk_size.y)
     
-    # Snap to the nearest grid line
     start_x = view_left - (view_left % step_x)
     start_y = view_top - (view_top % step_y)
     
@@ -43,7 +43,6 @@ def draw_wind_arrows(surface, camera_pos, wind_engine, grid_spacing=64):
     for x in range(start_x, view_left + screen_w + grid_spacing, grid_spacing):
         for y in range(start_y, view_top + screen_h + grid_spacing, grid_spacing):
             
-            # Use the engine passed in the arguments
             vx, vy = wind_engine.get_wind_at(x, y)
             
             screen_x = x - view_left
@@ -58,3 +57,62 @@ def draw_wind_arrows(surface, camera_pos, wind_engine, grid_spacing=64):
             
             pygame.draw.line(surface, settings.COLOR_WIND, (screen_x, screen_y), (end_x, end_y), 2)
             pygame.draw.circle(surface, settings.COLOR_WIND, (int(screen_x), int(screen_y)), 3)
+
+
+def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
+    """
+    Paint the pixels of a chunk surface based on its data.
+    """
+ 
+    if not is_loaded:
+        surface.fill((60, 40, 40)) 
+        return
+
+
+    alt = env_maps["altitude"]
+    temp = env_maps["temperature"]
+    precip = env_maps["precipitation"]
+
+    if "water_cutoff" in env_maps and env_maps["water_cutoff"] is not None:
+        water_cutoff = env_maps["water_cutoff"]
+    else:
+        water_cutoff = np.full_like(alt, settings.SEA_LEVEL)
+
+    # Debug modes
+    if mode == "altitude":
+        c = (alt * 255).astype(np.uint8)
+        rgb = np.dstack((c, c, c))
+        pygame.surfarray.blit_array(surface, rgb)
+        return
+
+  
+    if mode == "temperature":
+        c = (temp * 255).astype(np.uint8)
+        rgb = np.dstack((c, np.zeros_like(c), 255 - c))
+        pygame.surfarray.blit_array(surface, rgb)
+        return
+
+ 
+    if mode == "precipitation":
+        c = (precip * 255).astype(np.uint8)
+        rgb = np.dstack((np.zeros_like(c), c, c))
+        pygame.surfarray.blit_array(surface, rgb)
+        return
+
+  
+    if mode == "biomes":
+        WATER_COLOR = np.array([0.0, 0.1, 0.3], dtype=np.float32)
+        water_mask = alt <= water_cutoff
+        biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
+        
+        safe_cutoff = np.maximum(water_cutoff, 1e-4)
+        biome_colors[water_mask] = (WATER_COLOR / safe_cutoff[water_mask, None])
+        
+        brightness = alt.copy()
+        brightness[~water_mask] = 0.2 + (alt[~water_mask] * 0.8)
+        brightness[water_mask] = alt[water_mask]
+        colors = biome_colors * brightness[:, :, np.newaxis]
+        
+        pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
+        pygame.surfarray.blit_array(surface, pygame_colors)
+        return
