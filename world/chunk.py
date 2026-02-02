@@ -8,7 +8,7 @@ from generation import noise_engine
 from generation.biome_placement import get_chunk_biome_map
 from generation.generator import Generator
 
-import graphics.visuals as visuals  
+import graphics.visuals as visuals 
 
 class Chunk:
     def __init__(self, tile_pos: Vector2, generator: Generator):
@@ -38,9 +38,18 @@ class Chunk:
         self.env_maps["precipitation"] = self.generator.climate_engine.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
         
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+
+        self.env_maps["objects"] = self.generator.object_engine.generate_object_map(
+            self.tile_pos.x, 
+            self.tile_pos.y, 
+            self.env_maps["biomes"],
+            self.env_maps["terrain"],  
+            self.env_maps["water_level"]
+        )
         
         self.is_loaded = True
         self.update_graphics()
+        
 
     def unload(self):
         self.neighbors.clear()
