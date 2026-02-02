@@ -6,15 +6,16 @@ from world.utils import tile_to_world, apply_function_to_map
 
 from generation import noise_engine
 from generation.biome_placement import get_chunk_biome_map
-from generation.engine_singletons import *
+from generation.generator import Generator
 
 import graphics.visuals as visuals  
 
 class Chunk:
-    def __init__(self, tile_pos: Vector2):
+    def __init__(self, tile_pos: Vector2, generator: Generator):
         self.tile_pos = tile_pos
         self.neighbors = dict()
-        
+
+        self.generator = generator
         self.env_maps = dict()
         
         self.is_loaded = False
@@ -26,15 +27,15 @@ class Chunk:
 
     def load(self):
         if self.is_loaded: return
-        self._create_neighbors()
+        #self._create_neighbors()
         
-        self.env_maps["terrain"] = TERRAIN_ENGINE.get_terrain_map(self.tile_pos.x, self.tile_pos.y)
+        self.env_maps["terrain"] = self.generator.terrain_engine.get_terrain_map(self.tile_pos.x, self.tile_pos.y)
         
-        self.env_maps["temperature"] = TEMPERATURE_NOISE_ENGINE.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self.env_maps["temperature"] = self.generator.temperature_noise_engine.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
 
-        self.env_maps["water_level"] = WATER_ENGINE.get_water_level_map(self.tile_pos.x, self.tile_pos.y)
+        self.env_maps["water_level"] = self.generator.water_engine.get_water_level_map(self.tile_pos.x, self.tile_pos.y)
         
-        self.env_maps["precipitation"] = CLIMATE_ENGINE.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
+        self.env_maps["precipitation"] = self.generator.climate_engine.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
         
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
         
