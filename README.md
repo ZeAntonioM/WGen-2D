@@ -1,22 +1,67 @@
-# WGen-2D
-
-## Noise Engine
-
-### Overview
-`NoiseEngine` is a singleton class that provides noise maps for procedural generation. It uses a Cython wrapper for FastNoiseLite called `pyfastnoiselite` to generate the noise for the terrain generation.
-The `NoiseEngine` class uses OpenSimplex2 noise by default. It is the commonly used noise type for terrain generation due to its smoothness and natural appearance and a direct evolution of Simplex noise. The library also supports other noise types like Perlin, Cellular, and Value noise, as well as a simplex noise variant called OpenSimplex2S.
-For the fractal type, the default is set to FBM (Fractional Brownian Motion), which combines multiple layers of noise to create more complex and detailed patterns. Other fractal types supported include Ridged, PingPong, and DomainWarp.
-
-### Features
-Currently supports seed customization and frequency adjustment. 
-If needed, the class also extends support for different noise types and fractal types. 
-Its only method, get_noise_height_map, receives the world coordinates and returns a 2D numpy array representing the height map, with values normalized between 0 and 1 that can be adapted for different purposes like terrain elevation, texture mapping, etc.
-
-### Usage
-```python
-from noise_engine import NoiseEngine
-noise_engine = NoiseEngine(seed=42, frequency=0.01)
-height_map = noise_engine.get_noise_height_map(x_start=0, y_start=0)
-```
+<div align="center">
+    <img alt="Banner" src="./assets/Banner.png">
+</div>
 
 
+
+# Table of Contents
+
+- [Project Overview](#project-overview)
+- [How It Works](#how-it-works)
+- [Technologies Used](#technologies-used)
+- [The Team](#the-team)
+
+# Project Overview
+
+<h4 align="center">
+  WGen-2D: A Deterministic Climate Simulation
+</h4>
+
+## Problem
+
+Most procedural generation in games relies on simple randomness or "noise" (like Perlin Noise) to place biomes. This often results in a "fruit salad" map where deserts sit next to glaciers, or rainforests appear without any water source. While this creates infinite worlds, they often lack geographical logic, realism, and immersion.
+
+## Solution
+
+**WGen-2D** creates an infinite world based on **Planetary Physics**, not just randomness. Instead of painting biomes directly, we simulate the *causes* of biomes. The engine generates altitude, simulates a global wind vector field, and traces moisture from the oceans to calculate rainfall and rain shadows.
+
+The result is a world where deserts form naturally behind mountains, forests grow in wet coastal valleys, and flora (like trees, cacti, and flowers) is placed deterministically based on specific "biological" density rules.
+
+# How It Works
+
+1.  **Geometry:** We use Perlin Noise to generate an infinite base terrain (Altitude).
+2.  **Wind Simulation:** We generate a continuous global Vector Field to simulate wind currents.
+3.  **Climate Engine:** We use a "Reverse Trace" algorithm. For every pixel, we trace the wind backward. If it comes from the ocean, it brings rain. If it hits a mountain, it creates a **Rain Shadow** (Desert).
+4.  **Biology:** We use a Whittaker Diagram to combine Temperature and Precipitation to select the correct Biome.
+5.  **Object Placement:** A deterministic hashing system places trees, rocks, and flowers, ensuring that the infinite world is always consistent, even when revisited.
+
+## Technologies Used
+
+-   **Python** – The core logic and simulation engine.
+-   **Pygame** – Used for real-time rendering, chunk management, and the visual interface.
+-   **NumPy** – Utilized for high-performance vectorized calculations (managing 1024 pixels per chunk instantly).
+-   **SciPy** – Used for optimization techniques like Bilinear Interpolation to upscale climate data.
+
+# The Team
+<h4 align="center">
+  Procedural Generation Engineers
+</h4>
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="https://avatars.githubusercontent.com/u/94190384?v=4" width="100px;" alt="Member 1">
+      <br>
+      <b>Francisco Cardoso</b>
+    </td>
+    <td align="center">
+      <img src="https://avatars.githubusercontent.com/u/93012005?v=4" width="100px;" alt="Member 2">
+      <br>
+      <b>José Martins</b>
+    </td>
+    <td align="center">
+      <img src="https://avatars.githubusercontent.com/u/137832322?v=4" width="100px;" alt="Member 3">
+      <br>
+      <b>Cedric Hartz</b>
+    </td>
+  </tr>
+</table>
