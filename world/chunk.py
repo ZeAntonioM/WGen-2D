@@ -65,7 +65,9 @@ class Chunk:
         self.env_maps["objects"] = OBJECT_ENGINE.generate_object_map(
             self.tile_pos.x, 
             self.tile_pos.y, 
-            self.env_maps["biomes"]
+            self.env_maps["biomes"],
+            self.env_maps["altitude"],  
+            settings.SEA_LEVEL
         )
 
 

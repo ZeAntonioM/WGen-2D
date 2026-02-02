@@ -19,7 +19,7 @@ class ObjectEngine:
     def __init__(self, global_seed):
         self.global_seed = global_seed
         
-    def generate_object_map(self, chunk_x, chunk_y, biome_data):
+    def generate_object_map(self, chunk_x, chunk_y, biome_data, altitude_map, water_level):
         """
         Returns a 32x32 array of integers representing objects.
         """
@@ -83,5 +83,8 @@ class ObjectEngine:
 
         # Rule 10: Berry Bushes in Taiga 
         object_map[chance_map > (1.0 - rules.DENSITY_TAIGA_BERRY * w_taiga)] = WorldObject.BERRY_BUSH
+
+        water_mask = altitude_map <= water_level
+        object_map[water_mask] = WorldObject.NONE
         
         return object_map
