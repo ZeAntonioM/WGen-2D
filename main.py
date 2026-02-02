@@ -175,6 +175,8 @@ def main():
         center_screen = (settings.SCREEN_WIDTH // 2, settings.SCREEN_HEIGHT // 2)
         pygame.draw.circle(display, settings.COLOR_PLAYER, center_screen, 8)
 
+        visuals.draw_controls_hud(display)
+
         pygame.display.update()
         clock.tick(settings.FPS)
 
