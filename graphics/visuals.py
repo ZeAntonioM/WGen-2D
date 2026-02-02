@@ -69,14 +69,10 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         return
 
 
-    alt = env_maps["altitude"]
+    alt = env_maps["terrain"]
     temp = env_maps["temperature"]
     precip = env_maps["precipitation"]
-
-    if "water_cutoff" in env_maps and env_maps["water_cutoff"] is not None:
-        water_cutoff = env_maps["water_cutoff"]
-    else:
-        water_cutoff = np.full_like(alt, settings.SEA_LEVEL)
+    water_cutoff = env_maps["water_level"]
 
     # Debug modes
     if mode == "altitude":
@@ -101,12 +97,12 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
 
   
     if mode == "biomes":
-        WATER_COLOR = np.array([0.0, 0.1, 0.3], dtype=np.float32)
+        WATER_COLOR = np.array([0.0, 0.3, 0.9], dtype=np.float32)
         water_mask = alt <= water_cutoff
         biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
         
-        safe_cutoff = np.maximum(water_cutoff, 1e-4)
-        biome_colors[water_mask] = (WATER_COLOR / safe_cutoff[water_mask, None])
+        #safe_cutoff = np.maximum(water_cutoff, 1e-4)
+        biome_colors[water_mask] = WATER_COLOR#(WATER_COLOR / safe_cutoff[water_mask, None])
         
         brightness = alt.copy()
         brightness[~water_mask] = 0.2 + (alt[~water_mask] * 0.8)

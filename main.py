@@ -5,6 +5,7 @@ import graphics.visuals as visuals
 from world.chunk_manager import CHUNK_MANAGER
 from world.utils import tile_to_world
 from generation.wind_engine import WindEngine
+from generation.engine_singletons import *
 
 def main():
     pygame.init()
@@ -93,7 +94,7 @@ def main():
         
         # 3. Draw Player
         center_screen = (settings.SCREEN_WIDTH // 2, settings.SCREEN_HEIGHT // 2)
-        pygame.draw.circle(display, settings.COLOR_PLAYER, center_screen, 8)
+        #pygame.draw.circle(display, settings.COLOR_PLAYER, center_screen, 8)
 
         pygame.display.update()
         clock.tick(settings.FPS)
