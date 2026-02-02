@@ -9,7 +9,9 @@ from generation.biome_placement import get_chunk_biome_map
 from generation.climate_engine import ClimateEngine
 from generation.wind_engine import WindEngine
 
-import graphics.visuals as visuals  
+import graphics.visuals as visuals 
+from generation.object_engine import ObjectEngine
+OBJECT_ENGINE = ObjectEngine(settings.GLOBAL_SEED) 
 
 ALTITUDE_NOISE_ENGINE = noise_engine.NoiseEngine(
     seed=settings.ALTITUDE_NOISE_SEED,
@@ -57,10 +59,21 @@ class Chunk:
         
         self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
 
+        self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+
+
+        self.env_maps["objects"] = OBJECT_ENGINE.generate_object_map(
+            self.tile_pos.x, 
+            self.tile_pos.y, 
+            self.env_maps["biomes"]
+        )
+
+
         self._adjust_water_cutoff()
         
         self.is_loaded = True
         self.update_graphics()
+        
 
     def unload(self):
         self.neighbors.clear()

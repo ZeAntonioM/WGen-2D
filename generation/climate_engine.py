@@ -57,7 +57,7 @@ class ClimateEngine:
                         
                         current_moisture -= moisture_loss
                     else:
-                        pass#current_moisture -= settings.DECAY_ON_LAND
+                        current_moisture -= settings.DECAY_ON_LAND
                     
                     wx, wy = self.wind.get_wind_at(trace_x, trace_y)
                     mag = math.sqrt(wx*wx + wy*wy)

@@ -3,6 +3,7 @@ import math
 import settings 
 import numpy as np
 from generation.biome_placement import biome_vectors_to_rgb
+from generation.object_engine import WorldObject
 
 def draw_infinite_grid(surface, camera_pos, chunk_size):
     """ Draws grid lines aligned with chunk boundaries. """
@@ -115,4 +116,40 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         
         pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
         pygame.surfarray.blit_array(surface, pygame_colors)
+  
+    
+        if mode == "biomes" and "objects" in env_maps:
+            obj_map = env_maps["objects"]
+            
+
+            object_locations = np.argwhere(obj_map > 0)
+            
+            for x, y in object_locations:
+                obj_type = obj_map[x, y]
+                
+                if water_mask[x, y]: 
+                    continue
+
+                color = None
+                radius = 2
+                
+                if obj_type == WorldObject.TREE:
+                    color = (10, 50, 10)     # Dark Green
+                elif obj_type == WorldObject.CACTUS:
+                    color = (50, 150, 50)    # Light Green
+                    radius = 1
+                elif obj_type == WorldObject.PALM:
+                    color = (150, 100, 50)   # Brownish
+                elif obj_type == WorldObject.SNOW_TREE:
+                    color = (200, 220, 220)  # White-ish
+
+                elif obj_type == WorldObject.ROCK:
+                    color = (100, 100, 110)  # Slate Grey
+                    radius = 2               # Small, distinct dots
+                
+                if color:
+                    # Draw directly onto the chunk surface
+                    pygame.draw.circle(surface, color, (x, y), radius)
+
         return
+    
