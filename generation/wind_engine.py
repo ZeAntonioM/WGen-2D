@@ -22,8 +22,8 @@ class WindEngine:
 
     def get_wind_at(self, x, y):
 
-        nx = self.noise_x.get_noise_at(x, y)
-        ny = self.noise_y.get_noise_at(x, y)
+        nx = self.noise_x.get_raw_noise_at(x, y)
+        ny = self.noise_y.get_raw_noise_at(x, y)
         
         
         return nx, ny 

@@ -4,8 +4,9 @@ import scipy.ndimage
 import settings
 
 class ClimateEngine:
-    def __init__(self, terrain_engine, wind_engine):
+    def __init__(self, terrain_engine, water_engine, wind_engine):
         self.terrain = terrain_engine
+        self.water = water_engine
         self.wind = wind_engine
         
     def get_precipitation_map(self, chunk_x, chunk_y):
@@ -39,20 +40,22 @@ class ClimateEngine:
     
                 for s in range(settings.MAX_STEPS):
                     
-                    alt = self.terrain.get_noise_at(trace_x, trace_y)
-                    meters_above_sea = alt + 0.4
+                    terrain = self.terrain.get_terrain_at(trace_x, trace_y)
+                    water_level = self.water.get_water_level_at(trace_x, trace_y)
+                    meters_above_sea = terrain - water_level
                     if meters_above_sea < 0: meters_above_sea = 0
 
-                    pickup = max(0.0, min(1.4, 1.4-meters_above_sea)) / 1.4
-                    pickup *= pickup*pickup
-                
+                    # this pickup coefficient is 1 inside water and quickly decreases against 0 with increasing distance to water
+                    pickup = max(0.0, min(1.0, 1.0-meters_above_sea))
+                    pickup **= 7
+
                     current_moisture += pickup * settings.MOISTURE_PICKUP / settings.MAX_STEPS
                     if current_moisture >= 1.0:
                         current_moisture = 1.0
                         break
-                    if alt > 0.5: 
+                    if terrain > 0.5: 
 
-                        height_excess = alt - 0.5
+                        height_excess = terrain - 0.5
                         moisture_loss = height_excess * settings.MOUNTAIN_COST / settings.MAX_STEPS
                         
                         current_moisture -= moisture_loss

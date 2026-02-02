@@ -4,10 +4,12 @@ from pygame.math import Vector2
 import settings
 from world.chunk import Chunk
 from world.utils import world_to_tile, distance_to_chunk_center
+from generation.generator import Generator
 
 class ChunkManager:
-    def __init__(self):
+    def __init__(self, generator: Generator):
         self._chunks = dict()
+        self.generator = generator
 
     def update(self, camera_pos: Vector2):
         self._unload_chunks_away_from_camera(camera_pos)
@@ -47,8 +49,5 @@ class ChunkManager:
             if tuple(p) in self._chunks:
                 c = self._chunks[tuple(p)]
             else:
-                self._chunks[tuple(p)] = c = Chunk(p)
+                self._chunks[tuple(p)] = c = Chunk(p, self.generator)
             c.load()
-
-# Singleton Instance
-CHUNK_MANAGER = ChunkManager()

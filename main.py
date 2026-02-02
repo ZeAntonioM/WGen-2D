@@ -2,9 +2,9 @@
 import pygame
 import settings
 import graphics.visuals as visuals
-from world.chunk_manager import CHUNK_MANAGER
 from world.utils import tile_to_world
-from generation.wind_engine import WindEngine
+from world.chunk_manager import ChunkManager
+from generation.generator import Generator
 
 def menu(display, clock):
     
@@ -81,13 +81,9 @@ def main():
 
     user_seed = menu(display, clock)
     print(f"Seed chosen: {user_seed}")
-    
-    settings.WIND_SEED = user_seed
-    settings.GLOBAL_SEED = user_seed
 
-    wind_engine = WindEngine(seed=settings.WIND_SEED, scale=settings.WIND_SCALE)
-
-    CHUNK_MANAGER.chunks.clear()
+    generator = Generator(user_seed)
+    chunk_manager = ChunkManager(generator)
     
     camera_pos = pygame.Vector2(0, 0)
     key_map = {key: False for key in ("left", "right", "up", "down")}
@@ -129,7 +125,7 @@ def main():
                 if new_mode and new_mode != view_mode:
                     view_mode = new_mode
                     print(f"Switching view to: {view_mode}")
-                    for chunk in CHUNK_MANAGER.chunks.values():
+                    for chunk in chunk_manager.chunks.values():
                         chunk.update_graphics(view_mode)
 
             elif event.type == pygame.KEYUP:
@@ -146,10 +142,10 @@ def main():
         if key_map["down"]: camera_pos.y += move_speed
         
         # Update Content (Loads/Unloads chunks)
-        CHUNK_MANAGER.update(camera_pos)
+        chunk_manager.update(camera_pos)
 
         if view_mode != "biomes":
-             for chunk in CHUNK_MANAGER.chunks.values():
+             for chunk in chunk_manager.chunks.values():
                  chunk.update_graphics(view_mode)
 
         # --- DRAW ---
@@ -159,7 +155,7 @@ def main():
         offset_y = camera_pos.y - (settings.SCREEN_HEIGHT // 2)
 
         # 1. Draw Chunks (Content)
-        for c in CHUNK_MANAGER.chunks.values():
+        for c in chunk_manager.chunks.values():
             world_pos = tile_to_world(c.position)
             draw_pos = (world_pos[0] - offset_x, world_pos[1] - offset_y)
             display.blit(c.surface, draw_pos)
@@ -169,7 +165,7 @@ def main():
             visuals.draw_infinite_grid(display, camera_pos, settings.CHUNK_SIZE)
         
         if show_wind:
-            visuals.draw_wind_arrows(display, camera_pos, wind_engine)
+            visuals.draw_wind_arrows(display, camera_pos, generator.wind_engine)
         
         # 3. Draw Player
         center_screen = (settings.SCREEN_WIDTH // 2, settings.SCREEN_HEIGHT // 2)

@@ -1,7 +1,7 @@
 import numpy as np
 import settings
 from generation.biome_placement import Biome
-import config.object_rules as rules
+import project_config.object_rules as rules
 
 class WorldObject:
     NONE = 0
@@ -16,10 +16,10 @@ class WorldObject:
     BERRY_BUSH = 9
 
 class ObjectEngine:
-    def __init__(self, global_seed):
-        self.global_seed = global_seed
+    def __init__(self, seed):
+        self.seed = seed
         
-    def generate_object_map(self, chunk_x, chunk_y, biome_data, altitude_map, water_level):
+    def generate_object_map(self, chunk_x, chunk_y, biome_data, terrain_map, water_level_map):
         """
         Returns a 32x32 array of integers representing objects.
         """
@@ -29,7 +29,7 @@ class ObjectEngine:
         ix = int(chunk_x)
         iy = int(chunk_y)
         
-        chunk_seed = (self.global_seed ^ (ix * 73856093)) ^ (iy * 19349663)
+        chunk_seed = (self.seed ^ (ix * 73856093)) ^ (iy * 19349663)
         rng = np.random.default_rng(abs(chunk_seed))
         
         chance_map = rng.random((cx, cy), dtype=np.float32)
@@ -84,7 +84,7 @@ class ObjectEngine:
         # Rule 10: Berry Bushes in Taiga 
         object_map[chance_map > (1.0 - rules.DENSITY_TAIGA_BERRY * w_taiga)] = WorldObject.BERRY_BUSH
 
-        water_mask = altitude_map <= water_level
+        water_mask = terrain_map <= water_level_map
         object_map[water_mask] = WorldObject.NONE
         
         return object_map

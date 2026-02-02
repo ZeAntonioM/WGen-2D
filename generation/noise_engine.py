@@ -55,9 +55,15 @@ class NoiseEngine:
 
         return height_map
     
-    def get_noise_at(self, x, y):
+    def get_raw_noise_at(self, x, y):
         """
         Returns a single noise value at world coordinates x, y.
         Range: -1.0 to 1.0 (Raw noise)
         """
         return self.noise.get_noise(float(x), float(y))
+    def get_normalized_noise_at(self, x, y):
+        """
+        Returns a single noise value at world coordinates x, y.
+        Range: 0.0 to 1.0 (Normalized noise)
+        """
+        return (self.noise.get_noise(float(x), float(y))+1)/2
