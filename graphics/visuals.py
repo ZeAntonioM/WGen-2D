@@ -74,6 +74,7 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
     temp = env_maps["temperature"]
     precip = env_maps["precipitation"]
     water_cutoff = env_maps["water_level"]
+    river_map = env_maps["river"]
 
     # Debug modes
     if mode == "altitude":
@@ -96,6 +97,10 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         pygame.surfarray.blit_array(surface, rgb)
         return
 
+    if mode == "river":
+        c = (river_map * 255).astype(np.uint8)
+        rgb = np.dstack((np.zeros_like(c), np.zeros_like(c), c))
+        pygame.surfarray.blit_array(surface, rgb)
   
     if mode == "biomes":
         WATER_COLOR = np.array([0.0, 0.3, 0.9], dtype=np.float32)
@@ -176,6 +181,7 @@ def draw_controls_hud(surface):
         ("2", "Altitude Map"),
         ("3", "Temperature Map"),
         ("4", "Precipitation Map"),
+        ("5", "River Map"),
         ("W", "Toggle Wind View"),
         ("C", "Toggle Chunk Grid"), 
         ("ESC", "Quit"),

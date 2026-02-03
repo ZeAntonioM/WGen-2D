@@ -46,6 +46,8 @@ class Chunk:
             self.env_maps["terrain"],  
             self.env_maps["water_level"]
         )
+
+        self.env_maps["river"] = self.generator.river_engine.get_river_map(self.tile_pos.x, self.tile_pos.y)
         
         self.is_loaded = True
         self.update_graphics()

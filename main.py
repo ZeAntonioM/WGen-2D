@@ -121,6 +121,7 @@ def main():
                 if event.key == pygame.K_2: new_mode = "altitude"
                 if event.key == pygame.K_3: new_mode = "temperature"
                 if event.key == pygame.K_4: new_mode = "precipitation"
+                if event.key == pygame.K_5: new_mode = "river"
                 
                 if new_mode and new_mode != view_mode:
                     view_mode = new_mode
