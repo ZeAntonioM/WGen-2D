@@ -12,9 +12,6 @@ class NoiseEngine:
     
     # Updated __init__ to accept fractal_octaves
     def __init__(self, seed, frequency=0.01, fractal_octaves=5):
-        # Use the global setting instead of hardcoded 32
-        self.chunk_size = int(settings.CHUNK_SIZE.x)
-        
         # initialize FastNoiseLite with seed
         self.noise = FastNoiseLite(seed)
         
@@ -36,16 +33,16 @@ class NoiseEngine:
     """    
     def get_noise_height_map(self, chunk_x, chunk_y):
         
-        height_map = np.zeros((self.chunk_size, self.chunk_size), dtype=np.float32)
+        height_map = np.zeros((int(settings.CHUNK_SIZE.x), int(settings.CHUNK_SIZE.y)), dtype=np.float32)
         
         # Calculate world coordinates offset
-        start_x = float(chunk_x * self.chunk_size)
-        start_y = float(chunk_y * self.chunk_size)
+        start_x = float(chunk_x * settings.CHUNK_SIZE.x)
+        start_y = float(chunk_y * settings.CHUNK_SIZE.y)
         
-        for y in range(self.chunk_size):
+        for y in range(int(settings.CHUNK_SIZE.y)):
             world_y = start_y + y
             
-            for x in range(self.chunk_size):
+            for x in range(int(settings.CHUNK_SIZE.x)):
                 world_x = start_x + x
 
                 noise_value = self.noise.get_noise(world_x, world_y)

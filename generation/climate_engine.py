@@ -10,29 +10,28 @@ class ClimateEngine:
         self.wind = wind_engine
         
     def get_precipitation_map(self, chunk_x, chunk_y):
+        overhang = 2*settings.CLIMATE_STEP
+        big_w = int(settings.CHUNK_SIZE.x) + 2*overhang
+        big_h = int(settings.CHUNK_SIZE.y) + 2*overhang
+
         cx = int(settings.CHUNK_SIZE.x)
         cy = int(settings.CHUNK_SIZE.y)
         step = settings.CLIMATE_STEP
         
-        small_w = math.ceil(cx / step)
-        small_h = math.ceil(cy / step)
+        small_w = math.ceil(big_w / step)
+        small_h = math.ceil(big_h / step)
         
         small_map = np.zeros((small_w, small_h), dtype=np.float32)
         
-        start_world_x = chunk_x * cx
-        start_world_y = chunk_y * cy
+        start_world_x = chunk_x * cx - overhang
+        start_world_y = chunk_y * cy - overhang
         
         for i in range(small_w):
             for j in range(small_h):
                 
- 
                 pixel_x = (i * step) + (step // 2)
                 pixel_y = (j * step) + (step // 2)
                 
-               
-                pixel_x = min(pixel_x, cx - 1)
-                pixel_y = min(pixel_y, cy - 1)
-
                 trace_x = start_world_x + pixel_x
                 trace_y = start_world_y + pixel_y
                 
@@ -71,14 +70,13 @@ class ClimateEngine:
 
                 small_map[i, j] = max(0.0, min(1.0, current_moisture))
                 
-        if step == 1:
-            return small_map
+        if step != 1:
+            zoom_x = big_w / small_w
+            zoom_y = big_h / small_h
+            precip_map_with_overhang = scipy.ndimage.zoom(small_map, (zoom_x, zoom_y), order=2, grid_mode=True, mode="grid-constant")
+        else:
+            precip_map_with_overhang = small_map
             
-   
-        zoom_x = cx / small_w
-        zoom_y = cy / small_h
-        
-   
-        precip_map = scipy.ndimage.zoom(small_map, (zoom_x, zoom_y), order=1)
+        precip_map = precip_map_with_overhang[overhang:overhang+cx, overhang:overhang+cy]
         
         return np.clip(precip_map, 0.0, 1.0)
