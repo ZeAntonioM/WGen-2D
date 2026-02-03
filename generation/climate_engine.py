@@ -2,7 +2,6 @@ import numpy as np
 import math
 import scipy.ndimage
 import settings
-from world.utils import LagReducer
 
 class ClimateEngine:
     def __init__(self, terrain_engine, water_engine, wind_engine):
@@ -27,10 +26,8 @@ class ClimateEngine:
         start_world_x = chunk_x * cx - overhang
         start_world_y = chunk_y * cy - overhang
         
-        lag_reducer = LagReducer(50)
         for i in range(small_w):
             for j in range(small_h):
-                lag_reducer.reduce_lag()
  
                 pixel_x = (i * step) + (step // 2)
                 pixel_y = (j * step) + (step // 2)
