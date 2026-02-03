@@ -1,7 +1,7 @@
 import pygame 
 
 # --- WORLD GENERATION BASE ---
-CHUNK_SIZE = pygame.Vector2(32, 32)
+CHUNK_SIZE = pygame.Vector2(128, 128)
 
 # --- NOISE CONFIGURATION ---
 # Altitude
