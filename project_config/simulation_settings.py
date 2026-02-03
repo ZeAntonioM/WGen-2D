@@ -37,9 +37,10 @@ BASE_TEMP = 25.0
 TEMP_LAPSE_RATE = 20.0  
 
 # --- CLIMATE SIMULATION ---
-MAX_STEPS = 40          # Bigger -> more precise, slower
-STEP_SIZE = 3        # Bigger -> Faster, less precise
-CLIMATE_STEP = 4        # Bigger -> less detail, faster   
+MAX_STEPS = 80          # Bigger -> more precise, slower
+STEP_SIZE = 2        # Bigger -> Faster, less precise
+CLIMATE_STEP = 64        # Bigger -> less detail
+# setting CLIMATE_STEP to CHUNK_SIZE / 2 is the fastest, increasing it more will result in too much overhead for the blurring
 
 # Physics
 MOISTURE_PICKUP = 1  # Moisture gain on water
