@@ -4,6 +4,7 @@ import settings
 import numpy as np
 from generation.biome_placement import biome_vectors_to_rgb
 from generation.object_engine import WorldObject
+from world.utils import LagReducer
 
 def draw_infinite_grid(surface, camera_pos, chunk_size):
     """ Draws grid lines aligned with chunk boundaries. """
@@ -119,8 +120,10 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
             
 
             object_locations = np.argwhere(obj_map > 0)
-            
+            lag_reducer = LagReducer(30)
             for x, y in object_locations:
+                lag_reducer.reduce_lag()
+                
                 obj_type = obj_map[x, y]
                 
                 if water_mask[x, y]: 

@@ -19,6 +19,7 @@ class Chunk:
         self.env_maps = dict()
         
         self.is_loaded = False
+        self.is_loading = False
         self.surface = pygame.Surface(settings.CHUNK_SIZE)
         self.update_graphics()
 
@@ -27,6 +28,7 @@ class Chunk:
 
     def load(self):
         if self.is_loaded: return
+        self.is_loading = True
         #self._create_neighbors()
         
         self.env_maps["terrain"] = self.generator.terrain_engine.get_terrain_map(self.tile_pos.x, self.tile_pos.y)
@@ -49,6 +51,7 @@ class Chunk:
         
         self.is_loaded = True
         self.update_graphics()
+        self.is_loading = False
         
 
     def unload(self):

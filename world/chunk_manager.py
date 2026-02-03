@@ -1,6 +1,8 @@
 # world/chunk_manager.py
 import math
 from pygame.math import Vector2
+import threading
+
 import settings
 from world.chunk import Chunk
 from world.utils import world_to_tile, distance_to_chunk_center
@@ -10,10 +12,12 @@ class ChunkManager:
     def __init__(self, generator: Generator):
         self._chunks = dict()
         self.generator = generator
+        self._threads = set()
 
     def update(self, camera_pos: Vector2):
         self._unload_chunks_away_from_camera(camera_pos)
         self._load_chunks_near_camera(camera_pos)
+        self._threads = {t for t in self._threads if t.is_alive()}
 
     def create_chunk(self, tile_pos: Vector2):
         if tuple(tile_pos) in self._chunks:
@@ -50,4 +54,11 @@ class ChunkManager:
                 c = self._chunks[tuple(p)]
             else:
                 self._chunks[tuple(p)] = c = Chunk(p, self.generator)
-            c.load()
+            if c.is_loaded: continue
+            if c.is_loading: continue
+            if not settings.USE_MULTITHREADING:
+                c.load()
+            else:
+                t = threading.Thread(target=c.load)
+                t.start()
+                self._threads.add(t)

@@ -5,6 +5,7 @@ import graphics.visuals as visuals
 from world.utils import tile_to_world
 from world.chunk_manager import ChunkManager
 from generation.generator import Generator
+import sys
 
 def menu(display, clock):
     
@@ -173,8 +174,8 @@ def main():
 
         visuals.draw_controls_hud(display)
 
-        pygame.display.update()
         clock.tick(settings.FPS)
+        pygame.display.update()
 
     pygame.quit()
 
