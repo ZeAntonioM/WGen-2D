@@ -123,20 +123,20 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         WATER_COLOR = np.array([0.0, 0.3, 0.9], dtype=np.float32)
         mask_ocean = alt <= water_cutoff
         
-        # 2. River Check (Is the river noise strong here?)
-        # 0.6 is a good threshold for the "width" of the water inside the trench
+
         mask_river = river_map > 0.6 
         
-        # 3. Combine them: It is water if it's Ocean OR River
+ 
         water_mask = mask_ocean | mask_river
         biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
         
-        #safe_cutoff = np.maximum(water_cutoff, 1e-4)
-        biome_colors[water_mask] = WATER_COLOR#(WATER_COLOR / safe_cutoff[water_mask, None])
+ 
+        biome_colors[water_mask] = WATER_COLOR
         
         brightness = alt.copy()
-        brightness[~water_mask] = 0.4 + (alt[~water_mask] * 0.6)
-        brightness[water_mask] = alt[water_mask]
+        if not np.all(water_mask):
+             brightness[~water_mask] = 0.4 + (alt[~water_mask] * 0.6)
+        brightness[water_mask] = 0.15 + (alt[water_mask] * 0.85)
         colors = biome_colors * brightness[:, :, np.newaxis]
         
         pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
