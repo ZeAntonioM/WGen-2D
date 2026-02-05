@@ -84,6 +84,16 @@ class ObjectEngine:
         # Rule 10: Berry Bushes in Taiga 
         object_map[chance_map > (1.0 - rules.DENSITY_TAIGA_BERRY * w_taiga)] = WorldObject.BERRY_BUSH
 
+        w_alpine = get_weight(Biome.ALPINE)
+
+        object_map[chance_map < (rules.DENSITY_ALPES_ROCK * w_alpine)] = WorldObject.ROCK
+
+        treeline_mask = (w_alpine > 0.05) & (w_alpine < 0.60)
+        
+        should_spawn_tree = treeline_mask & (chance_map < rules.DENSITY_ALPES_THREE)
+        object_map[should_spawn_tree & (object_map == WorldObject.NONE)] = WorldObject.SNOW_TREE
+
+
         water_mask = terrain_map <= water_level_map
         object_map[water_mask] = WorldObject.NONE
         

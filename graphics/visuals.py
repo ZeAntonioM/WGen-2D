@@ -138,7 +138,7 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
                     color = (10, 50, 10)     # Dark Green
                 elif obj_type == WorldObject.CACTUS:
                     color = (50, 150, 50)    # Light Green
-                    radius = 1
+                    radius = 1.5
                 elif obj_type == WorldObject.PALM:
                     color = (150, 100, 50)   # Brownish
                 elif obj_type == WorldObject.SNOW_TREE:
@@ -153,8 +153,8 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
                     radius = 1               
             
                 elif obj_type == WorldObject.DEAD_BUSH:
-                    color = (100, 80, 50)    # Dry Brown
-                    radius = 1
+                    color = (90, 70, 40)    # Dry Brown
+                    radius = 1.5
 
                 elif obj_type == WorldObject.MUSHROOM:
                     color = (200, 50, 50)    # Bright Red
