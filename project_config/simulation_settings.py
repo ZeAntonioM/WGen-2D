@@ -1,0 +1,57 @@
+import pygame 
+
+# --- WORLD GENERATION BASE ---
+CHUNK_SIZE = pygame.Vector2(128, 128)
+
+# --- NOISE CONFIGURATION ---
+# Altitude
+ALTITUDE_NOISE_FREQUENCY = 0.0025 
+ALTITUDE_NOISE_OCTAVES = 20
+ALTITUDE_RESHAPING_FUNCTION = lambda x: \
+    - 0.0016371863 \
+    - 2.219893 * x \
+    + 23.44919786 * x**2 \
+    - 67.458179075828 * x**3 \
+    + 81.07774578363 * x**4 \
+    - 33.86123680241 * x**5
+
+# Temperature
+TEMPERATURE_NOISE_FREQUENCY = 0.001
+TEMPERATURE_NOISE_OCTAVES = 3
+COLD_MOUNTAINS = 0.5
+
+# Wind
+WIND_SCALE = 2000.0
+
+# --- BIOME SIMULATION ---
+WHITTAKER_RES_T = 512
+WHITTAKER_RES_P = 512
+BIOME_SIGMA = 50.0 # Soft blending
+
+# --- WATER & CLIMATE LEVELS ---
+WATER_LEVEL_RESHAPING_FUNCTION = lambda x: \
+    - 0.24738095238096944 * x \
+    + 3.063214285714324 * x**2 \
+    - 4.527976190476227 * x**3 \
+    + 1.9821428571428705 * x**4
+BASE_TEMP = 25.0        
+TEMP_LAPSE_RATE = 20.0  
+
+# --- CLIMATE SIMULATION ---
+MAX_STEPS = 80          # Bigger -> more precise, slower
+STEP_SIZE = 2        # Bigger -> Faster, less precise
+CLIMATE_STEP = 64        # Bigger -> less detail
+# setting CLIMATE_STEP to CHUNK_SIZE / 2 is the fastest, increasing it more will result in too much overhead for the blurring
+
+# Physics
+MOISTURE_PICKUP = 1  # Moisture gain on water
+DECAY_ON_LAND = 0.001    # constant moisture cost on land
+MOUNTAIN_COST = 5       # Cost on moisture from passing throught a mountain
+
+# --- RIVERS & TRENCHES ---
+RIVER_NOISE_FREQUENCY = 0.0005
+RIVER_NOISE_OCTAVES = 4
+RIVER_WIDTH = 5
+RIVER_RESHAPING_FUNCTION = lambda x: \
+    0.8*2**(-10000/RIVER_WIDTH *(x-0.5)**2)
+AVOID_MOUNTAINS = 0.15
