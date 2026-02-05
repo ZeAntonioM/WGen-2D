@@ -28,13 +28,13 @@ class Biome(Enum):
     TROPICAL_RAINFOREST = 8
 
 BIOME_COLORS = np.array([
-    [1.00, 1.00, 1.00],  # Tundra (Almost White/Snow)
+    [1.00, 1.00, 1.00],  # Tundra ( White/Snow)
     [0.05, 0.35, 0.25],  # Taiga (Dark Pine Green)
     [0.60, 0.75, 0.30],  # Temperate Grassland (Vibrant Light Green)
     [0.10, 0.60, 0.10],  # Temperate Forest (Standard Green)
     [0.05, 0.45, 0.15],  # Temperate Rainforest (Deep lush Green)
-    [0.90, 0.85, 0.50],  # Subtropical Desert (Sand/Gold)
-    [0.70, 0.75, 0.20],  # Savanna (Dry Yellow-Green)
+    [1.00, 0.90, 0.55],  # Subtropical Desert (Sand/Gold)
+    [0.75, 0.80, 0.25],  # Savanna (Dry Yellow-Green)
     [0.30, 0.65, 0.10],  # Tropical Seasonal Forest (Bright Jungle Green)
     [0.05, 0.35, 0.10],  # Tropical Rainforest (Very Dark/Dense Green)
 ], dtype=np.float32)

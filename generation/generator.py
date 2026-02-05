@@ -53,5 +53,5 @@ class Generator():
         self.water_engine = WaterEngine(self.temperature_engine)
         self.river_engine = RiverEngine(smooth_altitude_noise_engine, self.water_engine, river_noise_engine)
         self.terrain_engine = TerrainEngine(altitude_noise_engine, self.river_engine)
-        self.climate_engine = ClimateEngine(self.terrain_engine, self.water_engine, self.wind_engine)
+        self.climate_engine = ClimateEngine(self.terrain_engine, self.water_engine, self.wind_engine, self.river_engine)
         self.object_engine = ObjectEngine(seed=object_seed)
