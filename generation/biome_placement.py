@@ -138,10 +138,7 @@ def get_chunk_biome_map(
 
     biome_vectors = _BIOME_WEIGHT_LUT[t_idx, p_idx]
 
-    ALPINE_START = 0.85
-    ALPINE_FULL = 0.95
-
-    alpine_weight = (altitude - ALPINE_START) / (ALPINE_FULL - ALPINE_START)
+    alpine_weight = (altitude - settings.ALPINE_START) / (settings.ALPINE_FULL - settings.ALPINE_START)
     alpine_weight = np.clip(alpine_weight, 0.0, 1.0)
   
     alpine_weight_3d = alpine_weight[:, :, np.newaxis]
