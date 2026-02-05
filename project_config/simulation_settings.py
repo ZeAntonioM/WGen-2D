@@ -45,11 +45,11 @@ CLIMATE_STEP = 64        # Bigger -> less detail
 
 # Physics
 MOISTURE_PICKUP = 1  # Moisture gain on water
-DECAY_ON_LAND = 0    # constant moisture cost on land
+DECAY_ON_LAND = 0.001    # constant moisture cost on land
 MOUNTAIN_COST = 5       # Cost on moisture from passing throught a mountain
 
 # --- RIVERS & TRENCHES ---
-RIVER_NOISE_FREQUENCY = 0.0001 * 11
+RIVER_NOISE_FREQUENCY = 0.0005
 RIVER_NOISE_OCTAVES = 4
 RIVER_WIDTH = 5
 RIVER_RESHAPING_FUNCTION = lambda x: \
