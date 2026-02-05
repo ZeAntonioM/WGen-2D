@@ -37,7 +37,7 @@ class Chunk:
         
         self.env_maps["precipitation"] = self.generator.climate_engine.get_precipitation_map(self.tile_pos.x, self.tile_pos.y)
         
-        self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"])
+        self.env_maps["biomes"] = get_chunk_biome_map(self.env_maps["precipitation"], self.env_maps["temperature"], self.env_maps["terrain"])
 
         self.env_maps["objects"] = self.generator.object_engine.generate_object_map(
             self.tile_pos.x, 
