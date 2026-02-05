@@ -33,7 +33,7 @@ class Chunk:
         
         self.env_maps["terrain"] = self.generator.terrain_engine.get_terrain_map(self.tile_pos.x, self.tile_pos.y)
         
-        self.env_maps["temperature"] = self.generator.temperature_noise_engine.get_noise_height_map(self.tile_pos.x, self.tile_pos.y)
+        self.env_maps["temperature"] = self.generator.temperature_engine.get_temperature_map(self.tile_pos.x, self.tile_pos.y)
 
         self.env_maps["water_level"] = self.generator.water_engine.get_water_level_map(self.tile_pos.x, self.tile_pos.y)
         

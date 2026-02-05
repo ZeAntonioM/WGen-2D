@@ -12,7 +12,7 @@ class WaterEngine():
         Returns the water level (between 0.0 and 1.0) for
         a single global coordinate (x, y)
         """
-        return settings.WATER_LEVEL_RESHAPING_FUNCTION(1.0-self.temperature.get_normalized_noise_at(x, y))
+        return settings.WATER_LEVEL_RESHAPING_FUNCTION(1.0-self.temperature.get_temperature_at(x, y))
 
     def get_water_level_map(self, chunk_x: int, chunk_y: int) -> np.array:
         """
@@ -21,5 +21,5 @@ class WaterEngine():
         """
         return apply_function_to_map(
             settings.WATER_LEVEL_RESHAPING_FUNCTION,
-            (1.0-self.temperature.get_noise_height_map(chunk_x, chunk_y))
+            (1.0-self.temperature.get_temperature_map(chunk_x, chunk_y))
         )
