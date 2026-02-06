@@ -135,7 +135,7 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         
         brightness = alt.copy()
         if not np.all(water_mask):
-             brightness[~water_mask] = 0.4 + (alt[~water_mask] * 0.6)
+             brightness[~water_mask] = 0.3 + (alt[~water_mask] * 0.7)
         brightness[water_mask] = 0.15 + (alt[water_mask] * 0.85)
         colors = biome_colors * brightness[:, :, np.newaxis]
         
