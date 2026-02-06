@@ -59,6 +59,23 @@ def draw_wind_arrows(surface, camera_pos, wind_engine, grid_spacing=64):
             
             pygame.draw.line(surface, settings.COLOR_WIND, (screen_x, screen_y), (end_x, end_y), 2)
             pygame.draw.circle(surface, settings.COLOR_WIND, (int(screen_x), int(screen_y)), 3)
+            pygame.draw.line(surface, settings.COLOR_WIND, (screen_x, screen_y), (end_x, end_y), 2)
+            pygame.draw.circle(surface, settings.COLOR_WIND, (int(screen_x), int(screen_y)), 3)
+
+            # --- NEW: Draw Arrowhead ---
+            angle = math.atan2(vy, vx)
+            arrow_size = 8
+            
+            # Left wing of the arrow
+            left_x = end_x - arrow_size * math.cos(angle - math.pi / 6)
+            left_y = end_y - arrow_size * math.sin(angle - math.pi / 6)
+            
+            # Right wing of the arrow
+            right_x = end_x - arrow_size * math.cos(angle + math.pi / 6)
+            right_y = end_y - arrow_size * math.sin(angle + math.pi / 6)
+            
+            # Draw the triangle
+            pygame.draw.polygon(surface, settings.COLOR_WIND, [(end_x, end_y), (left_x, left_y), (right_x, right_y)])
 
 
 def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
@@ -75,6 +92,7 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
     temp = env_maps["temperature"]
     precip = env_maps["precipitation"]
     water_cutoff = env_maps["water_level"]
+    river_map = env_maps["river"]
 
     # Debug modes
     if mode == "altitude":
@@ -97,21 +115,33 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
         pygame.surfarray.blit_array(surface, rgb)
         return
 
+    if mode == "river":
+        c = (river_map * 255).astype(np.uint8)
+        rgb = np.dstack((np.zeros_like(c), np.zeros_like(c), c))
+        pygame.surfarray.blit_array(surface, rgb)
   
     if mode == "biomes":
         WATER_COLOR = np.array([0.0, 0.3, 0.9], dtype=np.float32)
-        water_mask = alt <= water_cutoff
+        mask_ocean = alt <= water_cutoff
+        
+
+        mask_river = river_map > 0.6 
+        
+ 
+        water_mask = mask_ocean | mask_river
         biome_colors = biome_vectors_to_rgb(env_maps["biomes"])
         
-        #safe_cutoff = np.maximum(water_cutoff, 1e-4)
-        biome_colors[water_mask] = WATER_COLOR#(WATER_COLOR / safe_cutoff[water_mask, None])
+ 
+        biome_colors[water_mask] = WATER_COLOR
         
         brightness = alt.copy()
-        brightness[~water_mask] = 0.2 + (alt[~water_mask] * 0.8)
-        brightness[water_mask] = alt[water_mask]
+        if not np.all(water_mask):
+             brightness[~water_mask] = 0.4 + (alt[~water_mask] * 0.6)
+        brightness[water_mask] = 0.15 + (alt[water_mask] * 0.85)
         colors = biome_colors * brightness[:, :, np.newaxis]
         
         pygame_colors = np.clip((colors * 255).astype(np.uint8), 0, 255)
+        
         pygame.surfarray.blit_array(surface, pygame_colors)
   
     
@@ -136,7 +166,7 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
                     color = (10, 50, 10)     # Dark Green
                 elif obj_type == WorldObject.CACTUS:
                     color = (50, 150, 50)    # Light Green
-                    radius = 1
+                    radius = 1.5
                 elif obj_type == WorldObject.PALM:
                     color = (150, 100, 50)   # Brownish
                 elif obj_type == WorldObject.SNOW_TREE:
@@ -151,8 +181,8 @@ def update_chunk_surface(surface, env_maps, is_loaded, mode="biomes"):
                     radius = 1               
             
                 elif obj_type == WorldObject.DEAD_BUSH:
-                    color = (100, 80, 50)    # Dry Brown
-                    radius = 1
+                    color = (90, 70, 40)    # Dry Brown
+                    radius = 1.5
 
                 elif obj_type == WorldObject.MUSHROOM:
                     color = (200, 50, 50)    # Bright Red
@@ -179,6 +209,7 @@ def draw_controls_hud(surface):
         ("2", "Altitude Map"),
         ("3", "Temperature Map"),
         ("4", "Precipitation Map"),
+        ("5", "River Map"),
         ("W", "Toggle Wind View"),
         ("C", "Toggle Chunk Grid"), 
         ("ESC", "Quit"),

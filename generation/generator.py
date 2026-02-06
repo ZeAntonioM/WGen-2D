@@ -7,6 +7,7 @@ from generation.climate_engine import ClimateEngine
 from generation.wind_engine import WindEngine
 from generation.water_engine import WaterEngine
 from generation.object_engine import ObjectEngine
+from generation.river_engine import RiverEngine
 from generation.temperature_engine import TemperatureEngine
 
 
@@ -22,8 +23,10 @@ class Generator():
         temperature_seed = self.seed + 11
         wind_seed = self.seed + 12
         object_seed = self.seed + 13
+        river_seed = self.seed + 14
         
-        self._altitude_noise_engine = NoiseEngine(
+        # Noise Engines
+        altitude_noise_engine = NoiseEngine(
             seed=altitude_seed,
             frequency=settings.ALTITUDE_NOISE_FREQUENCY,
             fractal_octaves=settings.ALTITUDE_NOISE_OCTAVES
@@ -38,11 +41,17 @@ class Generator():
             frequency=settings.TEMPERATURE_NOISE_FREQUENCY,
             fractal_octaves=settings.TEMPERATURE_NOISE_OCTAVES
         )
+        river_noise_engine = NoiseEngine(
+            seed=river_seed,
+            frequency=settings.RIVER_NOISE_FREQUENCY,
+            fractal_octaves=settings.RIVER_NOISE_OCTAVES
+        )
         self.wind_engine = WindEngine(seed=wind_seed, scale=settings.WIND_SCALE)
 
-        self.terrain_engine = TerrainEngine(self._altitude_noise_engine)
+        # Derived Engines
         self.temperature_engine = TemperatureEngine(smooth_altitude_noise_engine, temperature_noise_engine)
         self.water_engine = WaterEngine(self.temperature_engine)
-        self.climate_engine = ClimateEngine(self.terrain_engine, self.water_engine, self.wind_engine)
-
+        self.river_engine = RiverEngine(smooth_altitude_noise_engine, self.water_engine, river_noise_engine)
+        self.terrain_engine = TerrainEngine(altitude_noise_engine, self.river_engine)
+        self.climate_engine = ClimateEngine(self.terrain_engine, self.water_engine, self.wind_engine, self.river_engine)
         self.object_engine = ObjectEngine(seed=object_seed)

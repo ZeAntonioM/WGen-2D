@@ -27,6 +27,8 @@ WIND_SCALE = 2000.0
 WHITTAKER_RES_T = 512
 WHITTAKER_RES_P = 512
 BIOME_SIGMA = 50.0 # Soft blending
+ALPINE_START = 0.65
+ALPINE_FULL = 0.85
 
 # --- WATER & CLIMATE LEVELS ---
 WATER_LEVEL_RESHAPING_FUNCTION = lambda x: \
@@ -45,5 +47,13 @@ CLIMATE_STEP = 64        # Bigger -> less detail
 
 # Physics
 MOISTURE_PICKUP = 1  # Moisture gain on water
-DECAY_ON_LAND = 0    # constant moisture cost on land
+DECAY_ON_LAND = 0.001    # constant moisture cost on land
 MOUNTAIN_COST = 5       # Cost on moisture from passing throught a mountain
+
+# --- RIVERS & TRENCHES ---
+RIVER_NOISE_FREQUENCY = 0.0005
+RIVER_NOISE_OCTAVES = 4
+RIVER_WIDTH = 5
+RIVER_RESHAPING_FUNCTION = lambda x: \
+    0.8*2**(-10000/RIVER_WIDTH *(x-0.5)**2)
+AVOID_MOUNTAINS = 0.15

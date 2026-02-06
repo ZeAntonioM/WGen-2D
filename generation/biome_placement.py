@@ -14,7 +14,7 @@ import settings
 ### Constants
 
 # Biomes
-N_BIOMES = 9 
+N_BIOMES = 10 
 
 class Biome(Enum):
     TUNDRA = 0
@@ -26,17 +26,19 @@ class Biome(Enum):
     SAVANNA = 6
     TROPICAL_SEASONAL_FOREST = 7
     TROPICAL_RAINFOREST = 8
+    ALPINE = 9
 
 BIOME_COLORS = np.array([
-    [1.00, 1.00, 1.00],  # Tundra (Almost White/Snow)
+    [1.00, 1.00, 1.00],  # Tundra ( White/Snow)
     [0.05, 0.35, 0.25],  # Taiga (Dark Pine Green)
     [0.60, 0.75, 0.30],  # Temperate Grassland (Vibrant Light Green)
     [0.10, 0.60, 0.10],  # Temperate Forest (Standard Green)
     [0.05, 0.45, 0.15],  # Temperate Rainforest (Deep lush Green)
-    [0.90, 0.85, 0.50],  # Subtropical Desert (Sand/Gold)
-    [0.70, 0.75, 0.20],  # Savanna (Dry Yellow-Green)
+    [1.00, 0.90, 0.55],  # Subtropical Desert (Sand/Gold)
+    [0.75, 0.80, 0.25],  # Savanna (Dry Yellow-Green)
     [0.30, 0.65, 0.10],  # Tropical Seasonal Forest (Bright Jungle Green)
     [0.05, 0.35, 0.10],  # Tropical Rainforest (Very Dark/Dense Green)
+    [0.85, 0.85, 0.85],  # Alpine (Snowy Grey/White)
 ], dtype=np.float32)
 
 assert(len(BIOME_COLORS) == N_BIOMES)
@@ -97,7 +99,8 @@ def _build_biome_weight_lut(biome_map: np.ndarray) -> np.ndarray:
         )
 
     # Normalize to sum = 1
-    weights /= weights.sum(axis=-1, keepdims=True)
+    total_weight = weights.sum(axis=-1, keepdims=True)
+    weights = np.divide(weights, total_weight, out=np.zeros_like(weights), where=total_weight!=0)
 
     return weights
 
@@ -111,7 +114,8 @@ _BIOME_WEIGHT_LUT = _build_biome_weight_lut(_WHITTAKER_BIOME_MAP)
 
 def get_chunk_biome_map(
     precipitation: np.ndarray,
-    temperature: np.ndarray
+    temperature: np.ndarray,
+    altitude: np.ndarray
 ) -> np.ndarray:
     """
     Returns a (CHUNK_SIZE.x, CHUNK_SIZE.y, N_BIOMES) array.
@@ -133,6 +137,15 @@ def get_chunk_biome_map(
     p_idx = (precipitation * (settings.WHITTAKER_RES_P - 1)).astype(np.int16)
 
     biome_vectors = _BIOME_WEIGHT_LUT[t_idx, p_idx]
+
+    alpine_weight = (altitude - settings.ALPINE_START) / (settings.ALPINE_FULL - settings.ALPINE_START)
+    alpine_weight = np.clip(alpine_weight, 0.0, 1.0)
+  
+    alpine_weight_3d = alpine_weight[:, :, np.newaxis]
+    
+    biome_vectors *= (1.0 - alpine_weight_3d)
+    
+    biome_vectors[:, :, Biome.ALPINE.value] += alpine_weight
 
     return biome_vectors
 
