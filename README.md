@@ -3,7 +3,6 @@
 </div>
 
 
-
 # Table of Contents
 
 - [Project Overview](#project-overview)
@@ -15,7 +14,7 @@
 # Project Overview
 
 <h4 align="center">
-  WGen-2D: A Deterministic Climate Simulation
+  Procedural Generation of a Coherent Infinite 2D Landscape
 </h4>
 
 ## Problem
@@ -43,7 +42,7 @@ You need Python installed on your machine.
 Then, install the required libraries:
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ``` 
 ### Running the Simulation
 
