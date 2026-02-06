@@ -78,8 +78,8 @@ class ClimateEngine:
                         break
                         
                     
-                    if terrain > 0.5: 
-                        height_excess = terrain - 0.5
+                    if terrain > 0.6: 
+                        height_excess = terrain - 0.6
                         moisture_loss = height_excess * settings.MOUNTAIN_COST / settings.MAX_STEPS
                         current_moisture -= moisture_loss
                     else:
