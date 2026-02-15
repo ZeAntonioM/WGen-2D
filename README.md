@@ -1,6 +1,13 @@
 <div align="center">
     <img alt="Banner" src="./assets/Banner.png">
 </div>
+<br></br>
+
+<p align="center"  >
+  <a href="./docs/Conference-Paper.pdf">
+    <img src="https://img.shields.io/badge/📄%20Read%20Conference%20Paper-blue?style=for-the-badge">
+  </a>
+</p>
 
 
 # Table of Contents
