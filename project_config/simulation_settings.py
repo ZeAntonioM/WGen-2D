@@ -26,7 +26,7 @@ WIND_SCALE = 2000.0
 # --- BIOME SIMULATION ---
 WHITTAKER_RES_T = 512
 WHITTAKER_RES_P = 512
-BIOME_SIGMA = 50.0 # Soft blending
+BIOME_SIGMA = 50.0 # Soft blending - to disable blending, set to 0.1
 ALPINE_START = 0.65
 ALPINE_FULL = 0.85
 
