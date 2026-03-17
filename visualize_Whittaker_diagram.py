@@ -52,12 +52,12 @@ def main():
     plt.figure(figsize=(6, 6))
     plt.imshow(rgb, origin="lower")
     #plt.title("Whittaker Diagram")
-    plt.xlabel("Temperature", fontsize=17, labelpad=10)
-    plt.ylabel("Precipitation", fontsize=17, labelpad=10)
+    plt.xlabel("Temperature", fontsize=18, labelpad=10)
+    plt.ylabel("Precipitation", fontsize=18, labelpad=10)
 
     # text
     font_dict = {
-        "fontsize": 17,
+        "fontsize": 18,
         "horizontalalignment": "center",
         "verticalalignment": "center_baseline"
     }
@@ -72,11 +72,11 @@ def main():
         (85, 15, "Subtropical\ndesert"),
         (47.5, 20, "Grassland")
     ):
-        plt.text(xpos, ypos, " \n".join(labeltext.split("\n"))+" ", **font_dict)
+        pass#plt.text(xpos, ypos, " \n".join(labeltext.split("\n"))+" ", **font_dict)
     
     # only ticks at boundaries:
-    plt.xticks((0, 25, 40, 70, 100), [round(x/100, 2) for x in (0, 25, 40, 70, 100)])
-    plt.yticks((0, 30, 40, 60, 70, 80, 100), [round(x/100, 2) for x in (0, 30, 40, 60, 70, 80, 100)])
+    plt.xticks((0, 25, 40, 70, 100), [round(x/100, 2) for x in (0, 25, 40, 70, 100)], fontsize=15)
+    plt.yticks((0, 30, 40, 60, 70, 80, 100), [round(x/100, 2) for x in (0, 30, 40, 60, 70, 80, 100)], fontsize=15)
 
     # regular ticks
     #plt.xticks(range(0, 100+1, 10), [round(x/100, 2) for x in range(0, 100+1, 10)])
