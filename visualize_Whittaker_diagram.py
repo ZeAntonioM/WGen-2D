@@ -51,9 +51,28 @@ def main():
 
     plt.figure(figsize=(6, 6))
     plt.imshow(rgb, origin="lower")
-    plt.title("Whittaker Diagram")
-    plt.xlabel("Temperature")
-    plt.ylabel("Precipitation")
+    #plt.title("Whittaker Diagram")
+    plt.xlabel("Temperature", fontsize=17, labelpad=10)
+    plt.ylabel("Precipitation", fontsize=17, labelpad=10)
+
+    # text
+    font_dict = {
+        "fontsize": 17,
+        "horizontalalignment": "center",
+        "verticalalignment": "center_baseline"
+    }
+    for xpos, ypos, labeltext in (
+        (12.5, 50, "Tundra"),
+        (32.5, 65, "Taiga"),
+        (55, 85, "Temperate\nrainforest"),
+        (55, 55, "Temperate\nforest"),
+        (85, 90, "Tropical\nrainforest"),
+        (85, 70, "Tropical\nseasonal\nforest"),
+        (85, 45, "Savanna"),
+        (85, 15, "Subtropical\ndesert"),
+        (47.5, 20, "Grassland")
+    ):
+        plt.text(xpos, ypos, " \n".join(labeltext.split("\n"))+" ", **font_dict)
     
     # only ticks at boundaries:
     plt.xticks((0, 25, 40, 70, 100), [round(x/100, 2) for x in (0, 25, 40, 70, 100)])
@@ -64,7 +83,9 @@ def main():
     #plt.yticks(range(0, 100+1, 10), [round(x/100, 2) for x in range(0, 100+1, 10)])
     
     plt.tight_layout()
-    plt.show()
+    fig = plt.gcf()
+    fig.savefig('wd.png', dpi=200) #default dpi=100
+    #plt.show()
 
 
 if __name__ == "__main__":
